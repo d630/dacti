@@ -1,0 +1,1 @@
+activate apps with dmenu

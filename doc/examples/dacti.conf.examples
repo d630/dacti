@@ -1,0 +1,18 @@
+d_opt='-b -f -i -l 10'
+#d_name='-name dmenu'
+#d_class='-class dmenu'
+#d_h='-h 5'
+#d_w='-w 1280'
+#d_x='-x 0'
+#d_y='-y 0'
+#d_o='-o 1.0'
+#d_dim='-dim 1.0'
+#d_dc='-dc #000000'
+d_color[d_nb]='-nb #2C2C2C'
+d_color[d_nf]='-nf #DCDCCC'
+d_color[d_sb]='-sb #DCDCCC'
+d_color[d_sf]='-sf #2C2C2C'
+d_fn='-fn -*-terminus-medium-*-*-*-14-*-*-*-*-*-iso10646-*'
+
+#term=xterm
+#xdg_applications_home=${HOME}/.local/share/applications

@@ -1,0 +1,126 @@
+Building Development
+Debugger Development
+IDE Development
+GUIDesigner Development
+Profiling Development
+RevisionControl Development
+Translation Development
+Calendar Office
+ContactManagement Office
+Database Office or Development or AudioVideo
+Dictionary Office or TextTools
+Chart Office
+Email Office or Network
+Finance Office
+FlowChart Office
+PDA Office
+ProjectManagement Office or Development
+Presentation Office
+Spreadsheet Office
+WordProcessor Office
+2DGraphics Graphics
+VectorGraphics Graphics and 2DGraphics
+RasterGraphics Graphics and 2DGraphics
+3DGraphics Graphics
+Scanning Graphics
+OCR Graphics and Scanning
+Photography Graphics or Office
+Publishing Graphics or Office
+Viewer Graphics or Office
+TextTools Utility
+DesktopSettings Settings
+HardwareSettings Settings
+Printing HardwareSettings and Settings
+PackageManager Settings
+Dialup Network
+InstantMessaging Network
+Chat Network
+IRCClient Network
+Feed Network
+FileTransfer Network
+HamRadio Network or Audio
+News Network
+P2P Network
+RemoteAccess Network
+Telephony Network
+TelephonyTools Utility
+VideoConference Network
+WebBrowser Network
+WebDevelopment Network or Development
+Midi AudioVideo and Audio
+Mixer AudioVideo and Audio
+Sequencer AudioVideo and Audio
+Tuner AudioVideo and Audio
+TV AudioVideo and Video
+AudioVideoEditing Audio or Video or AudioVideo
+Player Audio or Video or AudioVideo
+Recorder Audio or Video or AudioVideo
+DiscBurning AudioVideo
+ActionGame Game
+AdventureGame Game
+ArcadeGame Game
+BoardGame Game
+BlocksGame Game
+CardGame Game
+KidsGame Game
+LogicGame Game
+RolePlaying Game
+Shooter Game
+Simulation Game
+SportsGame Game
+StrategyGame Game
+Art Education or Science
+Construction Education or Science
+Music AudioVideo or Education
+Languages Education or Science
+ArtificialIntelligence Education or Science
+Astronomy Education or Science
+Biology Education or Science
+Chemistry Education or Science
+ComputerScience Education or Science
+DataVisualization Education or Science
+Economy Education or Science
+Electricity Education or Science
+Geography Education or Science
+Geology Education or Science
+Geoscience Education or Science
+History Education or Science
+Humanities Education or Science
+ImageProcessing Education or Science
+Literature Education or Science
+Maps Education or Science or Utility
+Math Education or Science
+NumericalAnalysis Education and Math or Science and Math
+MedicalSoftware Education or Science
+Physics Education or Science
+Robotics Education or Science
+Spirituality Education or Science or Utility
+Sports Education or Science
+ParallelComputing Education and ComputerScience or Science and ComputerScience
+Amusement
+Archiving Utility
+Compression Utility and Archiving
+Electronics
+Emulator System or Game
+Engineering
+FileTools Utility or System
+FileManager System and FileTools
+TerminalEmulator System
+Filesystem System
+Monitor System or Network
+Security Settings or System
+Accessibility Settings or Utility
+Calculator Utility
+Clock Utility
+TextEditor Utility
+Documentation
+Adult
+Core
+KDE QT
+GNOME GTK
+XFCE GTK
+GTK
+Qt
+Motif
+Java
+ConsoleOnly

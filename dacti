@@ -1,0 +1,578 @@
+#!/usr/bin/env bash
+
+# Copyright 2014 D630
+# https://github.com/D630/dacti
+
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+
+# You should have received a copy of the GNU General
+# Public License along with this program. If not, see
+# <http://www.gnu.org/licenses/gpl-3.0.html>.
+
+# -- DEBUGGING.
+
+#printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
+#set -o xtrace #; exec 2>> ~/dacti.log
+#set -o verbose
+#set -o noexec
+#set -o errexit
+#set -o nounset
+#set -o pipefail
+#trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
+
+# -- SETTINGS.
+
+#declare vars_base=$(set -o posix ; set)
+
+# -- FUNCTIONS.
+
+__dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
+
+__dacti_bin_atime_asc() { find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' | sort -n | cut -f2 | fgrep -xf <(lsx ${PATH//:/ }) | uniq  ; }
+
+__dacti_bin_atime_desc() { find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' | sort -rn | cut -f2 | fgrep -xf <(lsx ${PATH//:/ }) | uniq ; }
+
+__dacti_bin_desc() { lsx ${PATH//:/ } | sort -r | uniq ; }
+
+__dacti_dmenu() { dmenu -p "${1:-\$}" $d_opt $d_name $d_class $d_h $d_w $d_x $d_y $d_o $d_dim $d_dc ${d_color[*]} ${d_fn} ; }
+
+__dacti_log() { sort -rn "$DACTI_LOG_FILE" ; }
+
+__dacti_occur() { grep ' launch ' "$DACTI_LOG_FILE" | cut -d ' ' -f3 | sort | uniq -c | sort -nr ; }
+
+__dacti_browse_categories()
+{
+    (($# == 0)) && return 1
+    selection=$1
+    [[ ! $selection ]] && return 1
+
+    [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] &&
+    {
+        __dacti_update_categories
+        selection=${selection#:* }
+    }
+
+    read -r selection < <(find "$DACTI_CATS_DATA_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | __dacti_dmenu)
+    parent=${DACTI_CATS_DATA_DIR##*/}/${selection}
+    while [[ $selection ]]
+    do
+        read -r selection < <({ printf '%s\n' '..' '.' ; find "${DACTI_CATS_DATA_DIR%/*}/${parent}" -mindepth 1 -maxdepth 1 -printf '%f\n' ; } | sort | __dacti_dmenu)
+        case $selection  in
+            ..)
+                    parent=${parent%/*}
+                    ;;
+            .)
+                    parent=$parent
+                    ;;
+            *.desktop)
+                    __dacti_check_status "${selection%.desktop}"
+                    ;;
+            *)
+                    parent=${parent}/${selection}
+                    ;;
+        esac
+    done
+}
+
+__dacti_browse_keywords()
+{
+    __dacti_search_post()
+    {
+        if [[ ( ${operators[or]} && ${operators[not]} ) || ${operators[or]} ]]
+        then
+            for key in "${!search[@]}"
+            do
+                [[ $key =~ (^not*|^and*) ]] && continue
+                [[ ${search[$key]} == ${search[${key/or/not}]} ]] &&
+                {
+                    unset -v "search[$key]"
+                    unset -v "search[${key/or/not}]"
+                }
+            done
+            [[ ${operators[and]} ]] &&
+            {
+                for key in "${!search[@]}"
+                do
+                    [[ $key =~ ^and* ]] && continue
+                    if [[ ${search[$key]} == ${search[${key/or/and}]} ]]
+                    then
+                        unset -v "search[${key/or/and}]"
+                    else
+                        unset -v "search[$key]"
+                    fi
+                done
+            }
+            for key in "${!search[@]}"
+            do
+                [[ ! $key =~ ^and* ]] && search[${key/or /}]=1
+                unset -v "search[$key]"
+            done
+        elif [[ ${operators[not]} ]]
+        then
+            for key in "${!search[@]}"
+            do
+                [[ $key =~ ^not* ]] &&
+                {
+                    keyy=${key/not /}
+                    search[${keyy% *}]=1
+                }
+                unset -v "search[$key]"
+            done
+            for key in "${!search[@]}"
+            do
+                [[ $key =~ [[:blank:]] ]] || unset -v "search[$key]"
+            done
+        fi
+    }
+
+    (($# == 0)) && return 1
+    selection=$1
+    [[ ! $selection ]] && return 1
+
+    [[ $selection == :* ]] &&
+    {
+        [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && __dacti_update_keywords
+        [[ $selection =~ ^:.*q.*[[:space:]].*$ ]] && query_keywords=query_keywords
+        selection=${selection#:* }
+    }
+
+    if [[ $query_keywords ]]
+    then
+        selection=
+        eval query=($(echo | __dacti_dmenu))
+        declare -A search \
+                   operators
+
+        for i in "${query[@]}"
+        do
+            [[ $i =~ ^(and|not|or)$ ]] && operator=$i && continue
+            operator=${operator:-or}
+            operators[$operator]=1
+            while IFS=':' read -r file keywords
+            do
+                keywords=${keywords#Keywords=}
+                search[${operator} ${file}]=1
+            done < <(egrep -e "^(.*):Keywords=.*${i};.*$" "$DACTI_KEYWS_INDEX_FILE")
+        done
+        __dacti_search_post
+        selection=$(for key in "${!search[@]}" ; do printf '%s\n' "${key##*/}" ; done | __dacti_dmenu)
+        [[ $selection ]] && selection=${selection%.desktop} && __dacti_check_status
+    else
+        read -r selection < <(__dacti_dmenu < "$DACTI_KEYWS_LIST_FILE")
+        while [[ $selection ]]
+        do
+            parent=$selection
+            read -r selection < <({ printf '%s\n' '..' '.' ; while IFS=':' read -r file keywords ; do printf '%s\n' "${file##*/}" ; done < <(egrep -e "^(.*):Keywords=.*${selection};.*$" "$DACTI_KEYWS_INDEX_FILE") ; }| __dacti_dmenu)
+            case $selection in
+                .)
+                        selection=$parent
+                        ;;
+                ..)
+                        read -r selection < <(__dacti_dmenu < "$DACTI_KEYWS_LIST_FILE")
+                        ;;
+                *)
+                        selection=${selection%.desktop} && __dacti_check_status
+                        ;;
+            esac
+        done
+    fi
+}
+
+__dacti_check_status()
+{
+    __dacti_check_wins()
+    {
+        read -r _ _ _ _ net_client_list < <(xprop -root _NET_CLIENT_LIST)
+
+        if [[ ${sections[${section_number} X_dacti_mode]} != gui ]]
+        then
+            for pid in $(pgrep -d ' ' "$selection")
+            do
+                until [[ ${pid// /} == 0 ]]
+                do
+                    pid=$(ps -p "${pid// /}" -o ppid= 2>/dev/null)
+                    pid_list+=(${pid// /})
+                done
+            done
+            for id in ${net_client_list//,/}
+            do
+                read -r _ _ net_wm_pid < <(xprop -id "$id" _NET_WM_PID)
+                for pid in "${pid_list[@]}"
+                do
+                    [[ $net_wm_pid == $pid ]] && xids+=($id)
+                done
+            done
+        else
+            for id in ${net_client_list//,/}
+            do
+                [[ $(xprop -id "$id" WM_CLASS) =~ ${sections[${section_number} StartupWMClass]:-${selection}} ]] &&
+                xids+=($id) &&
+                startup_wmclass=${BASH_REMATCH[0]}
+            done
+        fi
+
+        case ${#xids[@]} in
+            0)
+                    __dacti_exec_selection
+                    ;;
+            1)
+                    if [[ ${sections[${section_number} X_dacti_win_sg]} ]]
+                    then
+                        eval "${sections[${section_number} X_dacti_win_sg]}"
+                    else
+                        wmctrl -i -a "${xids[0]}"
+                    fi
+                    ;;
+            *)
+                    if [[ ${sections[${section_number} X_dacti_win_pl]} ]]
+                    then
+                        eval "${sections[${section_number} X_dacti_win_pl]}"
+                    else
+                        for i in "${xids[@]}"
+                        do
+                            wmctrl -i -a "$i"
+                        done
+                    fi
+                    ;;
+        esac
+    }
+
+    __dacti_exec_selection()
+    {
+        command -v "$selection" >/dev/null || return 1
+        selection=${sections[${section_number} Exec]:-$selection}
+
+        if [[ ${sections[${section_number} Terminal]} =~ (1|true|yes) && ( ${sections[${section_number} X_dacti_new_term]} =~ (1|true|yes) || $invocation_mode == gui ) ]]
+        then
+            (exec ${_term} -e "$selection;${SHELL:-bash}" 2>/dev/null &)
+        else
+           (exec ${selection} 2>/dev/null &)
+        fi
+    }
+
+    __dacti_build_new_file()
+    {
+        printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection} ${xdg_applications_home}/${selection}.desktop" >> "$DACTI_APPS_INDEX_FILE"
+        printf '%s\n' "[Desktop Entry]
+Actions=
+Categories=
+Comment=
+DBusActivatable=
+DocPath=
+Exec=$selection
+GenericName=
+Hidden=
+Icon=
+InitialPreference=
+Keywords=
+MimeType=
+Name=$selection
+NoDisplay=
+NotShowIn=
+OnlyShowIn=
+Path=
+ServiceTypes=
+StartupNotify=
+StartupWMClass=$startup_wmclass
+Terminal=${sections[${section_number} Terminal]}
+TryExec=
+Type=Application
+Version=1.1
+X-dacti_mode=${sections[${section_number} X_dacti_mode]}
+X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
+X-dacti_status=${sections[${section_number} X_dacti_status]}
+X-dacti_win_pl=
+X-dacti_win_sg=
+" > "${xdg_applications_home}/${selection}.desktop"
+        chmod 755 "${xdg_applications_home}/${selection}.desktop"
+    }
+
+    (($# == 0)) && return 1
+    selection=$1
+    [[ ! $selection ]] && return 1
+
+    [[ $selection == :* ]] &&
+    {
+        [[ $selection =~ ^:.*b.*[[:space:]].*$ ]] && status=block
+        [[ $selection =~ ^:.*i.*[[:space:]].*$ ]] && status=ign
+        [[ $selection =~ ^:.*n.*[[:space:]].*$ ]] && new_terminal=true
+        [[ $selection =~ ^:.*r.*[[:space:]].*$ ]] && status=reg
+        [[ $selection =~ ^:.*c.*[[:space:]].*$ ]] && terminal=true && mode=cli
+        [[ $selection =~ ^:.*t.*[[:space:]].*$ ]] && terminal=true && mode=tui
+        selection=${selection#:* }
+    }
+
+    declare -A sections
+    section_number=0
+
+    while read -r apps_status apps_mode apps_app apps_file
+    do
+        [[ $apps_app == $selection && -f $apps_file ]] &&
+        {
+            while IFS='=' read -r var val
+            do
+                if [[ $var =~ ^\[.*\]$ ]]
+                then
+                    ((section_number++))
+                elif [[ $var =~ ^(Name|Exec|Terminal|StartupWMClass|X-dacti_mode|X-dacti_new_term|X-dacti_status|X-dacti_win_sg|X-dacti_win_pl)$ ]]
+                then
+                    sections[${section_number} ${var/-/_}]=$val
+                fi
+            done < "$apps_file"
+        }
+    done < "$DACTI_APPS_INDEX_FILE"
+
+    case $section_number in
+        0)
+                build_new_file=build_new_file
+                ;;
+        [^1])
+                read -r -d '|' section_number <<< "$(for ((i=1 ; i <= ${section_number[@]} ; i++)); do printf '%s| %s| $ %s\n' "$i" "${sections[${i} Name]}" "${sections[${i} Exec]}"; done | __dacti_dmenu)"
+                ;;
+    esac
+
+    sections[${section_number} X_dacti_status]=${status:-${sections[${section_number} X_dacti_status]}}
+    sections[${section_number} X_dacti_status]=${sections[${section_status} X_dacti_mode]:-reg}
+    sections[${section_number} Terminal]=${terminal:-${sections[${section_number} Terminal]}}
+    sections[${section_number} X_dacti_new_term]=${new_terminal:-${sections[${section_number} X_dacti_new_term]}}
+    sections[${section_number} X_dacti_mode]=${mode:-${sections[${section_number} X_dacti_mode]}}
+    sections[${section_number} X_dacti_mode]=${sections[${section_number} X_dacti_mode]:-gui}
+
+    case ${sections[${section_number} X_dacti_status]} in
+        block)
+                [[ ! $build_new_file ]] && return 1
+                ;;
+        ign)
+                __dacti_exec_selection
+                ;;
+        *)
+                __dacti_check_wins
+                ;;
+    esac
+
+    [[ $build_new_file ]] && __dacti_build_new_file
+    printf '%s\n' "$(date +%Y-%m-%d_%H:%M) launch ${selection}" >> "$DACTI_LOG_FILE"
+
+    exit 0
+}
+
+__dacti_choice_0()
+{
+    printf '%s\n' "CATEGORIES" "KEYWORDS" "BIN-ASC" "BIN-DESC" "BIN-ATIME-ASC" "BIN-ATIME-DESC" "LOG" "OCCUR"
+    [[ $(stat -c %s "$DACTI_APPS_INDEX_FILE" 2>/dev/null) -ge 2 ]] &&
+    {
+        while read -r apps_status apps_mode apps_app apps_file
+        do
+            [[ $apps_status != block ]] && printf '%s\n' "$apps_app"
+        done < "$DACTI_APPS_INDEX_FILE"
+    } | sort
+}
+
+__dacti_choice_custom()
+{
+    case ${1,,} in
+        z)
+                spacefm_run_z-list.sh
+                ;;
+        clip)
+                dmenu_clippboard.sh
+                ;;
+        web)
+                firefox_run_url.sh
+                ;;
+        radio)
+                webradio.sh
+                ;;
+        file)
+                dmenu_special_files.sh
+                ;;
+        marks)
+                dmenu_run_marks.sh
+                ;;
+        pw)
+                dmenu_run_pass.sh
+                ;;
+        addresses)
+                ${_term} "nottoomuch_wrapper.sh;${SHELL:-"bash"}" 2>/dev/null
+                ;;
+        task-add)
+                ${_term} "taskwarrior_add.sh;${SHELL:-"bash"}"
+                ;;
+        kuno)
+                ${_term} "kuno.sh;${SHELL:-"bash"}"
+                ;;
+        wecker)
+                ${_term} "wecker_gui.sh;${SHELL:-"bash"}"
+                ;;
+        calc)
+                ${_term} "calc.sh;${SHELL:-"bash"}"
+                ;;
+        *)
+                return 1
+                ;;
+    esac
+}
+
+__dacti_comm_array()
+{
+    declare \
+            arg= \
+            counter= \
+            element_array_1= \
+            element_array_2= \
+            skip=
+
+    declare -a \
+               array_1=() \
+               array_2=()
+
+    { (($#)) && counter=1 ; } || return 1
+
+    for arg
+    do
+        [[ $arg == -- ]] && ((counter++))
+    done
+
+    for ((i=1 ; i <= $counter ; i++))
+    do
+        while [[ $# -gt 0 && $1 != -- ]]
+        do
+            eval "array_${i}+=( "$1" )"
+            shift 1
+        done
+        [[ $1 == -- ]] && shift 1
+    done
+
+    for element_array_1 in "${array_1[@]}"
+    do
+        for element_array_2 in "${array_2[@]}"
+        do
+            [[ $element_array_1 == $element_array_2 ]] && { skip=1 ; break ; }
+        done
+        ((skip)) || printf '%s\n' "$element_array_1"
+        skip=
+    done
+}
+
+__dacti_update_categories()
+{
+    cd -- "$DACTI_CATS_DATA_DIR" >/dev/null
+
+    find ${xdg_applications[*]} $xdg_applications_home -type f -name '*.desktop' -exec grep -HR '^Categories' /dev/null {} + | tee "$DACTI_CATS_INDEX_FILE" |
+    while IFS=':' read -r file cats
+    do
+        cats=${cats#Categories=}
+        categories=(${cats//;/ })
+
+        ((${#categories[@]} == 0)) && continue
+
+        mapfile -t main < <(find . -mindepth 1 -maxdepth 1 -type d -print | fgrep -e "$(printf '%s\n' ${categories[@]})")
+        mapfile -t sub < <(__dacti_comm_array "${categories[@]}" -- "${main[@]#./}")
+
+        for i in "${sub[@]}"
+        do
+            grep -q "^${i}\>" "$DACTI_CATS_SUB_INFO_FILE" || unset -v "sub[$i]"
+        done
+
+        if ((${#sub[@]} > 0))
+        then
+            while IFS= read -rd ''
+            do
+                ln -f -s "$file" "$REPLY"
+            done < <(find ${main[*]} -mindepth 1 -type d -print0 | grep -zZ -f <(printf '%s$\n' ${sub[@]}))
+        else
+            for i in "${main[@]}"
+            do
+                ln -f -s "$file" "$i"
+            done
+        fi
+    done
+}
+
+__dacti_update_keywords()
+{
+    find ${xdg_applications[*]} $xdg_applications_home -type f -name '*.desktop' -exec grep -HR '^Keywords=' /dev/null {} + | sed -e '{s/ $//;s/$/;/;s/;;/;/;s/; /;/g}' | tee "$DACTI_KEYWS_INDEX_FILE" |
+    while IFS=':' read -r file keywords
+    do
+        keywords=${keywords#Keywords=}
+        while read -r -d ';'
+        do
+            printf '%s\n' "$REPLY"
+        done <<< "$keywords"
+    done | sort | uniq > "$DACTI_KEYWS_LIST_FILE"
+}
+
+# -- MAIN.
+
+declare -r \
+           predir_datadir=${XDG_DATA_HOME:-${HOME}/.local/share} \
+           predir_configdir=${XDG_CONFIG_HOME:-${HOME}/.config}
+
+declare -r \
+           DACTI_CONF_FILE=${DACTI_CONF_FILE:-${predir_configdir}/dacti}/dacti.conf
+
+declare -A d_color
+
+[[ -f $DACTI_CONF_FILE ]] && source "$DACTI_CONF_FILE"
+
+declare -r DACTI_DATA_DIR=${DACTI_DATA_DIR:-${predir_datadir}/dacti} \
+
+declare -r \
+           DACTI_APPS_INDEX_FILE=${DACTI_APPS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_applications.index} \
+           DACTI_CATS_DATA_DIR=${DACTI_CATS_DATA_DIR:-${DACTI_DATA_DIR}/categories} \
+           DACTI_CATS_INDEX_FILE=${DACTI_CATS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_categories.index} \
+           DACTI_CATS_MAIN_INFO_FILE=${DACTI_CATS_MAIN_INFO_FILE:-${DACTI_DATA_DIR}/dacti_categories_main.info} \
+           DACTI_CATS_SUB_INFO_FILE=${DACTI_CATS_SUB_INFO_FILE:-${DACTI_DATA_DIR}/dacti_categories_sub.info} \
+           DACTI_KEYWS_INDEX_FILE=${DACTI_KEYWS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_keywords.index} \
+           DACTI_KEYWS_LIST_FILE=${DACTI_KEYWS_LIST_FILE:-${DACTI_DATA_DIR}/dacti_keywords.list} \
+           DACTI_LOG_FILE=${DACTI_LOG_FILE:-${DACTI_DATA_DIR}/dacti.log} \
+           DACTI_TMP_DIR=${DACTI_TMP_DIR:-${TMPDIR:-/tmp}} \
+           xdga_data_dirs=${XDG_DATA_DIRS:-/usr/local/share:/usr/share} \
+           DACTI_APPS_DIRS=${DACTI_APPS_DIRS:-${xdg_data_dirs}}
+
+declare \
+        invocation_mode= \
+        selection=
+
+declare -r term=${term:-$TERM} \
+           xdg_applications_home=${xdg_applications_home:-${predir_datadir}/applications}
+
+declare -a xdg_applications=(${DACTI_APPS_DIRS//:/ })
+declare -ra xdg_applications=(${xdg_applications[@]/%/\/applications})
+
+if tty &> /dev/null
+then
+    invocation_mode=cli
+elif [[ $DISPLAY ]]
+then
+    invocation_mode=gui
+else
+    exit 1
+fi
+
+[[ -d $DACTI_DATA_DIR ]] || mkdir -p "$DACTI_DATA_DIR"
+[[ -f $DACTI_APPS_INDEX_FILE ]] || > "$DACTI_APPS_INDEX_FILE"
+
+while :
+do
+    selection=$(__dacti_choice_0 | __dacti_dmenu)
+    case ${selection,,} in
+        bin-asc)        __dacti_check_status "$(__dacti_bin_asc | __dacti_dmenu)" ;;
+        bin-atime-asc)  __dacti_check_status "$(__dacti_bin_atime_asc | __dacti_dmenu)" ;;
+        bin-atime-desc) __dacti_check_status "$(__dacti_bin_atime_desc | __dacti_dmenu)" ;;
+        bin-desc)       __dacti_check_status "$(__dacti_bin_desc | __dacti_dmenu)" ;;
+        *categories)    __dacti_browse_categories "$selection" ;;
+        *keywords)      __dacti_browse_keywords "$selection" ;;
+        log)            selection=$(__dacti_log | __dacti_dmenu) && __dacti_check_status "${selection#* * }" ;;
+        occur)          selection=$(__dacti_occur | __dacti_dmenu) && __dacti_check_status "${selection#      * }";;
+        *)              __dacti_choice_custom "$selection" || __dacti_check_status "$selection" || exit 1 ;;
+    esac
+done

@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.4" ; }
+__dacti_version() { echo "0.0.9.5" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -378,11 +378,36 @@ X-dacti_win_sg=
         [^1])
                 read -r -d ']' section_number <<< "$(for ((i=1 ; i <= ${section_number[@]} ; i++)); do printf '[%s] %s: $ %s\n' "$i" "${sections[${i} Name]}" "${sections[${i} Exec]}"; done | __dacti_dmenu "CHOICE")"
                 section_number=${section_number/\[/}
+                [[ ! $section_number ]] &&
+                {
+                    read -r -d ']' selec < <(printf '%s\n' '[1] exit' "[2] Start as: $ ${selection}" "[3] Set options and starts as: $ ${selection}" "[4] Edit command and set options" | __dacti_dmenu "CHOICE")
+                    case ${selec/\[/} in
+                        1)
+                                return 1
+                                ;;
+                        2)
+                                section_number=0
+                                ;;
+                        4)
+                                selection=$(printf '%s\n' "$selection" | __dacti_dmenu "COMMAND")
+                                ;&
+                        3)
+                                selec=$(echo | __dacti_dmenu "OPTIONS")
+                                [[ $selec =~ ^:.*b.*$ ]] && status=block
+                                [[ $selec =~ ^:.*i.*$ ]] && status=ign
+                                [[ $selec =~ ^:.*n.*$ ]] && new_terminal=true
+                                [[ $selec =~ ^:.*r.*$ ]] && status=reg
+                                [[ $selec =~ ^:.*c.*$ ]] && terminal=true && mode=cli
+                                [[ $selec =~ ^:.*t.*$ ]] && terminal=true && mode=tui
+                                section_number=0
+                                ;;
+                    esac
+                }
                 ;;
     esac
 
     sections[${section_number} X_dacti_status]=${status:-${sections[${section_number} X_dacti_status]}}
-    sections[${section_number} X_dacti_status]=${sections[${section_status} X_dacti_mode]:-reg}
+    sections[${section_number} X_dacti_status]=${sections[${section_number} X_dacti_status]:-reg}
     sections[${section_number} Terminal]=${terminal:-${sections[${section_number} Terminal]}}
     sections[${section_number} X_dacti_new_term]=${new_terminal:-${sections[${section_number} X_dacti_new_term]}}
     sections[${section_number} X_dacti_mode]=${mode:-${sections[${section_number} X_dacti_mode]}}
@@ -627,7 +652,8 @@ do
         *\[categories\])    __dacti_browse_categories "$selection" ;;
         *\[keywords\])      __dacti_browse_keywords "$selection" ;;
         \[log\])            selection=$(__dacti_log | __dacti_dmenu "LOG") && __dacti_check_status "${selection#* * }" ;;
-        \[occur\])          selection=$(__dacti_occur | __dacti_dmenu "OCCUR") && __dacti_check_status "${selection#      * }";;
-        *)                  { declare -f __dacti_choice_custom > /dev/null && __dacti_choice_custom "$selection" ; } || __dacti_check_status "$selection" || exit 1 ;;
+        \[occur\])          selection=$(__dacti_occur | __dacti_dmenu "OCCUR") && __dacti_check_status "${selection#      * }" ;;
+        "")                 exit 1 ;;
+        *)                  { declare -f __dacti_choice_custom > /dev/null && __dacti_choice_custom "$selection" ; } || __dacti_check_status "$selection" ;;
     esac
 done

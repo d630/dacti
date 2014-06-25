@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.2" ; }
+__dacti_version() { echo "0.0.9.3" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -422,52 +422,7 @@ __dacti_choice_0()
     } | sort
 }
 
-__dacti_choice_custom()
-{
-    declare selection=$1
 
-    case ${selection,,} in
-        z)
-                spacefm_run_z-list.sh
-                ;;
-        clip)
-                dmenu_clippboard.sh
-                ;;
-        web)
-                firefox_run_url.sh
-                ;;
-        radio)
-                webradio.sh
-                ;;
-        file)
-                dmenu_special_files.sh
-                ;;
-        marks)
-                dmenu_run_marks.sh
-                ;;
-        pw)
-                dmenu_run_pass.sh
-                ;;
-        addresses)
-                ${term} "nottoomuch_wrapper.sh;${SHELL:-"bash"}" 2>/dev/null
-                ;;
-        task-add)
-                ${term} "taskwarrior_add.sh;${SHELL:-"bash"}"
-                ;;
-        kuno)
-                ${term} "kuno.sh;${SHELL:-"bash"}"
-                ;;
-        wecker)
-                ${term} "wecker_gui.sh;${SHELL:-"bash"}"
-                ;;
-        calc)
-                ${term} "calc.sh;${SHELL:-"bash"}"
-                ;;
-        *)
-                return 1
-                ;;
-    esac
-}
 
 __dacti_comm_array()
 {
@@ -673,6 +628,6 @@ do
         *keywords)      __dacti_browse_keywords "$selection" ;;
         log)            selection=$(__dacti_log | __dacti_dmenu "LOG") && __dacti_check_status "${selection#* * }" ;;
         occur)          selection=$(__dacti_occur | __dacti_dmenu "OCCUR") && __dacti_check_status "${selection#      * }";;
-        *)              __dacti_choice_custom "$selection" || __dacti_check_status "$selection" || exit 1 ;;
+        *)              { declare -f __dacti_choice_custom > /dev/null && __dacti_choice_custom "$selection" ; } || __dacti_check_status "$selection" || exit 1 ;;
     esac
 done

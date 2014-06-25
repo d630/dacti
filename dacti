@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.8" ; }
+__dacti_version() { echo "0.0.9.9" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -295,6 +295,7 @@ __dacti_check_status()
 
         if [[ -f ${xdg_applications_home}/${selection% *}.desktop ]]
         then
+            name=$(__dacti_dmenu "Enter a name" <<< "${selection% *}")
             action_name=${selection% *}_${RANDOM}
             while IFS='=' read -r key val
             do
@@ -312,7 +313,7 @@ X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
 X-dacti_win_sg=" >> "${xdg_applications_home}/${selection% *}.desktop"
         else
-        printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection}.desktop" >> "$DACTI_APPS_INDEX_FILE"
+        printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" >> "$DACTI_APPS_INDEX_FILE"
         printf '%s\n' "[Desktop Entry]
 Actions=
 Categories=
@@ -413,19 +414,20 @@ X-dacti_win_sg=" > "${xdg_applications_home}/${selection% *}.desktop"
                     section_number=${section_number/\[/}
                     [[ ! $section_number ]] &&
                     {
-                        read -r -d ']' selec < <(printf '%s\n' '[1] return' "[2] Start as: $ ${selection}" "[3] Set options and starts as: $ ${selection}" "[4] Edit command and set options." | __dacti_dmenu "SELECTION")
+                        read -r -d ']' selec < <(printf '%s\n' '[1] return' "[2] Exec: $ ${selection}" "[3] Set options and exec: $ ${selection}" "[4] Edit command and set options." | __dacti_dmenu "SELECTION")
                         case ${selec/\[/} in
                             4)
                                     selection=$(__dacti_dmenu "COMMAND" <<< "$selection")
                                     ;&
                             3)
-                                    selec=$(__dacti_dmenu "OPTIONS [bcinrt]" <<< "")
+                                    selec=$(__dacti_dmenu "OPTIONS [bcinrtu]" <<< ":")
                                     [[ $selec =~ ^:.*b.*$ ]] && status=block
                                     [[ $selec =~ ^:.*c.*$ ]] && terminal=true && mode=cli
                                     [[ $selec =~ ^:.*i.*$ ]] && status=ign
                                     [[ $selec =~ ^:.*n.*$ ]] && new_terminal=true
                                     [[ $selec =~ ^:.*r.*$ ]] && status=reg
                                     [[ $selec =~ ^:.*t.*$ ]] && terminal=true && mode=tui
+                                    [[ $selec =~ ^:.*u.*$ ]] && build_new_file=build_new_file
                                     [[ ! $selection ]] && return 1
                                     ;&
                             2)
@@ -460,7 +462,7 @@ X-dacti_win_sg=" > "${xdg_applications_home}/${selection% *}.desktop"
     esac
 
     [[ $build_new_file ]] && __dacti_build_new_file
-    printf '%s\n' "$(date +%Y-%m-%d_%H:%M) launch ${selection}" >> "$DACTI_LOG_FILE"
+    printf '%s\n' "$(date +%Y-%m-%d_%H:%M) launch ${selection% *}" >> "$DACTI_LOG_FILE"
 
     exit 0
 }
@@ -675,6 +677,8 @@ fi
 
 [[ ${1#-} =~ (x|-index) ]] && shift 1 && __dacti_index_applications
 [[ ${1#-} =~ (q|-quit) ]]
+[[ ${1#-} =~ (q|-categories) ]]
+[[ ${1#-} =~ (q|-keywords) ]]
 
 while :
 do

@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.0" ; }
+__dacti_version() { echo "0.0.9.2" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -164,7 +164,7 @@ __dacti_browse_keywords()
     if [[ $query_keywords ]]
     then
         selection=
-        eval query=($(echo | __dacti_dmenu))
+        eval query=($(echo | __dacti_dmenu "QUERY"))
         for i in "${query[@]}"
         do
             [[ $i =~ ^(and|not|or)$ ]] && operator=$i && continue
@@ -177,7 +177,7 @@ __dacti_browse_keywords()
             done < <(egrep -e "^(.*):Keywords=.*${i};.*$" "$DACTI_KEYWS_INDEX_FILE")
         done
         __dacti_search_post
-        selection=$(for key in "${!search[@]}" ; do printf '%s\n' "${key##*/}" ; done | __dacti_dmenu)
+        selection=$(for key in "${!search[@]}" ; do printf '%s\n' "${key##*/}" ; done | __dacti_dmenu "MATCH")
         [[ $selection ]] && __dacti_check_status "${selection%.desktop}"
     else
         read -r selection < <(__dacti_dmenu "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")
@@ -613,8 +613,7 @@ declare -r \
            predir_datadir=${XDG_DATA_HOME:-${HOME}/.local/share} \
            predir_configdir=${XDG_CONFIG_HOME:-${HOME}/.config}
 
-declare -r \
-           DACTI_CONF_FILE=${DACTI_CONF_FILE:-${predir_configdir}/dacti}/dacti.conf
+declare -r DACTI_CONF_FILE=${DACTI_CONF_FILE:-${predir_configdir}/dacti}/dacti.conf
 
 declare -A d_color
 

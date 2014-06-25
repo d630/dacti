@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.3" ; }
+__dacti_version() { echo "0.0.9.4" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -322,7 +322,7 @@ X-dacti_win_sg=
         chmod 755 "${xdg_applications_home}/${selection}.desktop"
     }
 
-    { (($# == 0)) || [[ ! $selection ]] ; } && return 1
+    (($# == 0)) && return 1
 
     declare \
             apps_app= \
@@ -338,6 +338,8 @@ X-dacti_win_sg=
             terminal= \
             val= \
             var=
+
+    [[ ! $selection ]] && return 1
 
     declare -A sections
 
@@ -412,7 +414,7 @@ __dacti_choice_0()
             apps_mode= \
             apps_status=
 
-    printf '%s\n' "CATEGORIES" "KEYWORDS" "BIN-ASC" "BIN-DESC" "BIN-ATIME-ASC" "BIN-ATIME-DESC" "LOG" "OCCUR"
+    printf '%s\n' "[CATEGORIES]" "[KEYWORDS]" "[BIN-ASC]" "[BIN-DESC]" "[BIN-ATIME-ASC]" "[BIN-ATIME-DESC]" "[LOG]" "[OCCUR]"
     [[ $(stat -c %s "$DACTI_APPS_INDEX_FILE" 2>/dev/null) -ge 2 ]] &&
     {
         while read -r apps_status apps_mode apps_app apps_file
@@ -421,8 +423,6 @@ __dacti_choice_0()
         done < "$DACTI_APPS_INDEX_FILE"
     } | sort
 }
-
-
 
 __dacti_comm_array()
 {
@@ -620,14 +620,14 @@ while :
 do
     selection=$(__dacti_choice_0 | __dacti_dmenu)
     case ${selection,,} in
-        bin-asc)        __dacti_check_status "$(__dacti_bin_asc | __dacti_dmenu "BIN-ASC")" ;;
-        bin-atime-asc)  __dacti_check_status "$(__dacti_bin_atime_asc | __dacti_dmenu "BIN-ATIME-ASC")" ;;
-        bin-atime-desc) __dacti_check_status "$(__dacti_bin_atime_desc | __dacti_dmenu "BIN-ATIME-DESC")" ;;
-        bin-desc)       __dacti_check_status "$(__dacti_bin_desc | __dacti_dmenu "BIN-DESC")" ;;
-        *categories)    __dacti_browse_categories "$selection" ;;
-        *keywords)      __dacti_browse_keywords "$selection" ;;
-        log)            selection=$(__dacti_log | __dacti_dmenu "LOG") && __dacti_check_status "${selection#* * }" ;;
-        occur)          selection=$(__dacti_occur | __dacti_dmenu "OCCUR") && __dacti_check_status "${selection#      * }";;
-        *)              { declare -f __dacti_choice_custom > /dev/null && __dacti_choice_custom "$selection" ; } || __dacti_check_status "$selection" || exit 1 ;;
+        \[bin-asc\])        __dacti_check_status "$(__dacti_bin_asc | __dacti_dmenu "BIN-ASC")" ;;
+        \[bin-atime-asc\])  __dacti_check_status "$(__dacti_bin_atime_asc | __dacti_dmenu "BIN-ATIME-ASC")" ;;
+        \[bin-atime-desc\]) __dacti_check_status "$(__dacti_bin_atime_desc | __dacti_dmenu "BIN-ATIME-DESC")" ;;
+        \[bin-desc\])       __dacti_check_status "$(__dacti_bin_desc | __dacti_dmenu "BIN-DESC")" ;;
+        *\[categories\])    __dacti_browse_categories "$selection" ;;
+        *\[keywords\])      __dacti_browse_keywords "$selection" ;;
+        \[log\])            selection=$(__dacti_log | __dacti_dmenu "LOG") && __dacti_check_status "${selection#* * }" ;;
+        \[occur\])          selection=$(__dacti_occur | __dacti_dmenu "OCCUR") && __dacti_check_status "${selection#      * }";;
+        *)                  { declare -f __dacti_choice_custom > /dev/null && __dacti_choice_custom "$selection" ; } || __dacti_check_status "$selection" || exit 1 ;;
     esac
 done

@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.6" ; }
+__dacti_version() { echo "0.0.9.7" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -332,7 +332,9 @@ X-dacti_win_sg=
             build_new_file= \
             mode= \
             new_terminal= \
+            overwrite= \
             section_number=0 \
+            selec= \
             selection=$1 \
             status= \
             terminal= \
@@ -346,16 +348,16 @@ X-dacti_win_sg=
     [[ $selection == :* ]] &&
     {
         [[ $selection =~ ^:.*b.*[[:space:]].*$ ]] && status=block
+        [[ $selection =~ ^:.*c.*[[:space:]].*$ ]] && terminal=true && mode=cli
         [[ $selection =~ ^:.*i.*[[:space:]].*$ ]] && status=ign
         [[ $selection =~ ^:.*n.*[[:space:]].*$ ]] && new_terminal=true
+        [[ $selection =~ ^:.*p.*[[:space:]].*$ ]] && pretend=pretend
         [[ $selection =~ ^:.*r.*[[:space:]].*$ ]] && status=reg
-        [[ $selection =~ ^:.*o.*[[:space:]].*$ ]] && overwrite=overwrite
-        [[ $selection =~ ^:.*c.*[[:space:]].*$ ]] && terminal=true && mode=cli
         [[ $selection =~ ^:.*t.*[[:space:]].*$ ]] && terminal=true && mode=tui
         selection=${selection#:* }
     }
 
-    [[ $overwrite != overwrite ]] &&
+    [[ $pretend != pretend ]] &&
     {
         while read -r apps_status apps_mode apps_app apps_file
         do
@@ -392,12 +394,12 @@ X-dacti_win_sg=
                                     selection=$(__dacti_dmenu "COMMAND" <<< "$selection")
                                     ;&
                             3)
-                                    selec=$(__dacti_dmenu "OPTIONS" <<< "")
+                                    selec=$(__dacti_dmenu "OPTIONS [bcinrt]" <<< "")
                                     [[ $selec =~ ^:.*b.*$ ]] && status=block
+                                    [[ $selec =~ ^:.*c.*$ ]] && terminal=true && mode=cli
                                     [[ $selec =~ ^:.*i.*$ ]] && status=ign
                                     [[ $selec =~ ^:.*n.*$ ]] && new_terminal=true
                                     [[ $selec =~ ^:.*r.*$ ]] && status=reg
-                                    [[ $selec =~ ^:.*c.*$ ]] && terminal=true && mode=cli
                                     [[ $selec =~ ^:.*t.*$ ]] && terminal=true && mode=tui
                                     section_number=0
                                     [[ ! $selection ]] && return 1

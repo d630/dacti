@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.9" ; }
+__dacti_version() { echo "0.0.9.10" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -70,18 +70,10 @@ __dacti_browse_categories()
     do
         read -r selection < <({ printf '%s\n' '[..]' '[.]' ; find "${DACTI_CATS_DATA_DIR%/*}/${parent}" -mindepth 1 -maxdepth 1 -printf '%f\n' ; } | sort | __dacti_dmenu ${parent##*/})
         case $selection  in
-            \[..\])
-                    parent=${parent%/*}
-                    ;;
-            \[.\])
-                    parent=$parent
-                    ;;
-            *.desktop)
-                    __dacti_check_status "${selection%.desktop}"
-                    ;;
-            *)
-                    parent=${parent}/${selection}
-                    ;;
+            \[..\])     parent=${parent%/*}                           ;;
+            \[.\])      parent=$parent                                ;;
+            *.desktop)  __dacti_check_status "${selection%.desktop}"  ;;
+            *)          parent=${parent}/${selection}                 ;;
         esac
     done
 }
@@ -186,15 +178,9 @@ __dacti_browse_keywords()
             parent=$selection
             read -r selection < <({ printf '%s\n' '[..]' '[.]' ; while IFS=':' read -r file keywords ; do printf '%s\n' "${file##*/}" ; done < <(egrep -e "^(.*):Keywords=.*${selection};.*$" "$DACTI_KEYWS_INDEX_FILE") ; }| __dacti_dmenu "$parent")
             case $selection in
-                \[.\])
-                        selection=$parent
-                        ;;
-                \[..\])
-                        read -r selection < <(__dacti_dmenu "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")
-                        ;;
-                *)
-                        __dacti_check_status "${selection%.desktop}"
-                        ;;
+                \[.\])      selection=$parent                                                           ;;
+                \[..\])     read -r selection < <(__dacti_dmenu "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE") ;;
+                *)          __dacti_check_status "${selection%.desktop}"                                ;;
             esac
         done
     fi
@@ -450,15 +436,9 @@ X-dacti_win_sg=" > "${xdg_applications_home}/${selection% *}.desktop"
     sections[${section_number} X_dacti_mode]=${sections[${section_number} X_dacti_mode]:-gui}
 
     case ${sections[${section_number} X_dacti_status]} in
-        block)
-                [[ ! $build_new_file ]] && return 1
-                ;;
-        ign)
-                __dacti_exec_selection
-                ;;
-        *)
-                __dacti_check_wins
-                ;;
+        block)      [[ ! $build_new_file ]] && return 1 ;;
+        ign)        __dacti_exec_selection ;;
+        *)          __dacti_check_wins ;;
     esac
 
     [[ $build_new_file ]] && __dacti_build_new_file
@@ -623,7 +603,61 @@ __dacti_update_keywords()
     done | sort | uniq > "$DACTI_KEYWS_CACHE_FILE"
 }
 
+__dacti_check_args()
+{
+    declare o=
+    if [[ ! $OPTARG =~ -.+ ]]
+    then
+        for o
+        do
+            declare -g "$o"
+        done
+    else
+        { printf '%s\n' "Option -${opt} requires an argument." >&2 ; exit 1 ; }
+    fi
+}
+
 # -- MAIN.
+
+declare \
+        arg= \
+        args= \
+        delim= \
+        opt=
+
+for arg
+do
+    arg=${arg#--}
+    case $arg in
+        conf-file=*)            args="${args}-C ${arg#*=} "            ;;
+        index-applications)     args="${args}-x "                      ;;
+        quit)                   args="${args}-q "                      ;;
+        update-categories)      args="${args}-c "                      ;;
+        update-keywords)        args="${args}-k "                      ;;
+        *)                      [[ ${arg:0:1} != - ]] && delim=\"
+                                args="${args}${arg} "
+                                delim=                                 ;;
+    esac
+done
+
+declare \
+        index_applications= \
+        quit= \
+        update_categories= \
+        update_keywords=
+
+eval set -- $args
+while getopts :cC:kqx opt
+do
+    case $opt in
+        c)      update_categories=update_categories                   ;;
+        C)      __dacti_check_args "DACTI_CONF_FILE=$OPTARG"          ;;
+        k)      update_keywords=update_keywords                       ;;
+        q)      quit=quit                                             ;;
+        x)      index_applications=index_applications                 ;;
+    esac
+done
+shift $((OPTIND-1))
 
 declare -r \
            predir_datadir=${XDG_DATA_HOME:-${HOME}/.local/share} \
@@ -675,10 +709,20 @@ fi
 [[ -d $DACTI_DATA_DIR ]] || mkdir -p "$DACTI_DATA_DIR"
 [[ -f $DACTI_APPS_INDEX_FILE ]] || > "$DACTI_APPS_INDEX_FILE"
 
-[[ ${1#-} =~ (x|-index) ]] && shift 1 && __dacti_index_applications
-[[ ${1#-} =~ (q|-quit) ]]
-[[ ${1#-} =~ (q|-categories) ]]
-[[ ${1#-} =~ (q|-keywords) ]]
+[[ $index_applications == index_applications ]] && __dacti_index_applications
+[[ $update_categories == update_categories ]] && __dacti_update_categories
+[[ $update_keywords == update_keywords ]] && __dacti_update_keywords
+[[ $quit == quit ]] && exit 0
+
+unset -v \
+         arg \
+         args \
+         delim \
+         index_applications \
+         opt \
+         quit \
+         update_categories \
+         update_keywords
 
 while :
 do

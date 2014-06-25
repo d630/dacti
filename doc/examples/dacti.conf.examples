@@ -17,7 +17,7 @@ d_fn='-fn -*-terminus-medium-*-*-*-14-*-*-*-*-*-iso10646-*'
 #term=xterm
 #xdg_applications_home=${HOME}/.local/share/applications
 
-__dacti_choice_custom()
+__dacti_selection_custom()
 {
     declare selection=$1
 

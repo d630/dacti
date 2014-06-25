@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.11" ; }
+__dacti_version() { echo "0.0.9.12" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -455,7 +455,7 @@ __dacti_selection_0()
             apps_mode= \
             apps_status=
 
-    printf '%s\n' "[CATEGORIES]" "[KEYWORDS]" "[BIN-ASC]" "[BIN-DESC]" "[BIN-ATIME-ASC]" "[BIN-ATIME-DESC]" "[LOG]" "[OCCUR]"
+    printf '[%s]\n' "${menu_0[@]}"
     [[ $(stat -c %s "$DACTI_APPS_INDEX_FILE" 2>/dev/null) -ge 2 ]] &&
     {
         while read -r apps_status apps_mode apps_app apps_file
@@ -686,15 +686,17 @@ declare -r \
 
 declare -r DACTI_APPS_DIRS=${DACTI_APPS_DIRS:-${xdg_data_dirs}}
 
-declare \
-        invocation_mode= \
-        selection=
-
 declare -r term=${term:-xterm} \
            xdg_applications_home=${xdg_applications_home:-${predir_datadir}/applications}
 
 declare -a xdg_applications=(${DACTI_APPS_DIRS//:/ })
 declare -ra xdg_applications=(${xdg_applications[@]/%/\/applications})
+
+declare -a menu_0=(${menu_0[@]:-CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR})
+
+declare \
+        invocation_mode= \
+        selection=
 
 if tty &> /dev/null
 then
@@ -723,6 +725,8 @@ unset -v \
          quit \
          update_categories \
          update_keywords
+
+
 
 while :
 do

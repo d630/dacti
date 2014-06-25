@@ -16,6 +16,7 @@ d_fn='-fn -*-terminus-medium-*-*-*-14-*-*-*-*-*-iso10646-*'
 
 #term=xterm
 #xdg_applications_home=${HOME}/.local/share/applications
+#menu_0=(CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR)
 
 __dacti_selection_custom()
 {

@@ -19,7 +19,7 @@ d_fn='-fn -*-terminus-medium-*-*-*-14-*-*-*-*-*-iso10646-*'
 
 __dacti_selection_custom()
 {
-    declare selection=$1
+    declare selection=$@
 
     case ${selection,,} in
         z)

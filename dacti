@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.12" ; }
+__dacti_version() { echo "0.0.9.13" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -44,7 +44,7 @@ __dacti_bin_atime_desc() { find ${PATH//:/ } \( -type f -o -type l \) -printf '%
 
 __dacti_bin_desc() { lsx ${PATH//:/ } | sort -r | uniq ; }
 
-__dacti_dmenu() { dmenu -p "${1:-\$}" $d_opt $d_name $d_class $d_h $d_w $d_x $d_y $d_o $d_dim $d_dc ${d_color[*]} $d_fn ; }
+__dacti_menu() { ${menu_cmd} -p "${1:-\$}" $d_opt $d_screen $d_name $d_class $d_h $d_w $d_x $d_y $d_o $d_dim $d_dc ${d_color[*]} $d_fn ; }
 
 __dacti_log() { sort -rn "$DACTI_LOG_FILE" ; }
 
@@ -64,11 +64,11 @@ __dacti_browse_categories()
         selection=${selection#:* }
     }
 
-    read -r selection < <(find "$DACTI_CATS_DATA_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | __dacti_dmenu "CATEGORIES")
+    read -r selection < <(find "$DACTI_CATS_DATA_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | __dacti_menu "CATEGORIES")
     parent=${DACTI_CATS_DATA_DIR##*/}/${selection}
     while [[ $selection ]]
     do
-        read -r selection < <({ printf '%s\n' '[..]' '[.]' ; find "${DACTI_CATS_DATA_DIR%/*}/${parent}" -mindepth 1 -maxdepth 1 -printf '%f\n' ; } | sort | __dacti_dmenu ${parent##*/})
+        read -r selection < <({ printf '%s\n' '[..]' '[.]' ; find "${DACTI_CATS_DATA_DIR%/*}/${parent}" -mindepth 1 -maxdepth 1 -printf '%f\n' ; } | sort | __dacti_menu ${parent##*/})
         case $selection  in
             \[..\])     parent=${parent%/*}                           ;;
             \[.\])      parent=$parent                                ;;
@@ -156,7 +156,7 @@ __dacti_browse_keywords()
     if [[ $query_keywords ]]
     then
         selection=
-        eval query=($(__dacti_dmenu "QUERY" <<< ""))
+        eval query=($(__dacti_menu "QUERY" <<< ""))
         for i in "${query[@]}"
         do
             [[ $i =~ ^(and|not|or)$ ]] && operator=$i && continue
@@ -169,17 +169,17 @@ __dacti_browse_keywords()
             done < <(egrep -e "^(.*):Keywords=.*${i};.*$" "$DACTI_KEYWS_INDEX_FILE")
         done
         __dacti_search_post
-        selection=$(for key in "${!search[@]}" ; do printf '%s\n' "${key##*/}" ; done | __dacti_dmenu "MATCH")
+        selection=$(for key in "${!search[@]}" ; do printf '%s\n' "${key##*/}" ; done | __dacti_menu "MATCH")
         [[ $selection ]] && __dacti_check_status "${selection%.desktop}"
     else
-        read -r selection < <(__dacti_dmenu "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")
+        read -r selection < <(__dacti_menu "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")
         while [[ $selection ]]
         do
             parent=$selection
-            read -r selection < <({ printf '%s\n' '[..]' '[.]' ; while IFS=':' read -r file keywords ; do printf '%s\n' "${file##*/}" ; done < <(egrep -e "^(.*):Keywords=.*${selection};.*$" "$DACTI_KEYWS_INDEX_FILE") ; }| __dacti_dmenu "$parent")
+            read -r selection < <({ printf '%s\n' '[..]' '[.]' ; while IFS=':' read -r file keywords ; do printf '%s\n' "${file##*/}" ; done < <(egrep -e "^(.*):Keywords=.*${selection};.*$" "$DACTI_KEYWS_INDEX_FILE") ; }| __dacti_menu "$parent")
             case $selection in
                 \[.\])      selection=$parent                                                           ;;
-                \[..\])     read -r selection < <(__dacti_dmenu "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE") ;;
+                \[..\])     read -r selection < <(__dacti_menu "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE") ;;
                 *)          __dacti_check_status "${selection%.desktop}"                                ;;
             esac
         done
@@ -281,7 +281,7 @@ __dacti_check_status()
 
         if [[ -f ${xdg_applications_home}/${selection% *}.desktop ]]
         then
-            name=$(__dacti_dmenu "Enter a name" <<< "${selection% *}")
+            name=$(__dacti_menu "Enter a name" <<< "${selection% *}")
             action_name=${selection% *}_${RANDOM}
             while IFS='=' read -r key val
             do
@@ -396,17 +396,17 @@ X-dacti_win_sg=" > "${xdg_applications_home}/${selection% *}.desktop"
                     build_new_file=build_new_file
                     ;;
             [^1])
-                    read -r -d ']' section_number <<< "$(for ((i=1 ; i <= ${section_number[@]} ; i++)); do printf '[%s] %s: $ %s\n' "$i" "${sections[${i} Name]}" "${sections[${i} Exec]}"; done | __dacti_dmenu "SELECTION")"
+                    read -r -d ']' section_number <<< "$(for ((i=1 ; i <= ${section_number[@]} ; i++)); do printf '[%s] %s: $ %s\n' "$i" "${sections[${i} Name]}" "${sections[${i} Exec]}"; done | __dacti_menu "SELECTION")"
                     section_number=${section_number/\[/}
                     [[ ! $section_number ]] &&
                     {
-                        read -r -d ']' selec < <(printf '%s\n' '[1] return' "[2] Exec: $ ${selection}" "[3] Set options and exec: $ ${selection}" "[4] Edit command and set options." | __dacti_dmenu "SELECTION")
+                        read -r -d ']' selec < <(printf '%s\n' '[1] return' "[2] Exec: $ ${selection}" "[3] Set options and exec: $ ${selection}" "[4] Edit command and set options." | __dacti_menu "SELECTION")
                         case ${selec/\[/} in
                             4)
-                                    selection=$(__dacti_dmenu "COMMAND" <<< "$selection")
+                                    selection=$(__dacti_menu "COMMAND" <<< "$selection")
                                     ;&
                             3)
-                                    selec=$(__dacti_dmenu "OPTIONS [bcinrtu]" <<< ":")
+                                    selec=$(__dacti_menu "OPTIONS [bcinrtu]" <<< ":")
                                     [[ $selec =~ ^:.*b.*$ ]] && status=block
                                     [[ $selec =~ ^:.*c.*$ ]] && terminal=true && mode=cli
                                     [[ $selec =~ ^:.*i.*$ ]] && status=ign
@@ -696,11 +696,20 @@ declare -a menu_0=(${menu_0[@]:-CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-A
 
 declare \
         invocation_mode= \
+        menu_cmd= \
         selection=
+
+if command -v "dmenu2" >/dev/null
+then
+    menu_cmd=dmenu2
+else
+    menu_cmd=dmenu
+fi
 
 if tty &> /dev/null
 then
     invocation_mode=cli
+    command -v "slmenu" >/dev/null && menu_cmd=slmenu
 elif [[ $DISPLAY ]]
 then
     invocation_mode=gui
@@ -726,20 +735,18 @@ unset -v \
          update_categories \
          update_keywords
 
-
-
 while :
 do
-    selection=$(__dacti_selection_0 | __dacti_dmenu)
+    selection=$(__dacti_selection_0 | __dacti_menu)
     case ${selection,,} in
-        \[bin-asc\])        __dacti_check_status "$(__dacti_bin_asc | __dacti_dmenu "BIN-ASC")" ;;
-        \[bin-atime-asc\])  __dacti_check_status "$(__dacti_bin_atime_asc | __dacti_dmenu "BIN-ATIME-ASC")" ;;
-        \[bin-atime-desc\]) __dacti_check_status "$(__dacti_bin_atime_desc | __dacti_dmenu "BIN-ATIME-DESC")" ;;
-        \[bin-desc\])       __dacti_check_status "$(__dacti_bin_desc | __dacti_dmenu "BIN-DESC")" ;;
+        \[bin-asc\])        __dacti_check_status "$(__dacti_bin_asc | __dacti_menu "BIN-ASC")" ;;
+        \[bin-atime-asc\])  __dacti_check_status "$(__dacti_bin_atime_asc | __dacti_menu "BIN-ATIME-ASC")" ;;
+        \[bin-atime-desc\]) __dacti_check_status "$(__dacti_bin_atime_desc | __dacti_menu "BIN-ATIME-DESC")" ;;
+        \[bin-desc\])       __dacti_check_status "$(__dacti_bin_desc | __dacti_menu "BIN-DESC")" ;;
         *\[categories\])    __dacti_browse_categories "$selection" ;;
         *\[keywords\])      __dacti_browse_keywords "$selection" ;;
-        \[log\])            selection=$(__dacti_log | __dacti_dmenu "LOG") && __dacti_check_status "${selection#* * }" ;;
-        \[occur\])          selection=$(__dacti_occur | __dacti_dmenu "OCCUR") && __dacti_check_status "${selection#      * }" ;;
+        \[log\])            selection=$(__dacti_log | __dacti_menu "LOG") && __dacti_check_status "${selection#* * }" ;;
+        \[occur\])          selection=$(__dacti_occur | __dacti_menu "OCCUR") && __dacti_check_status "${selection#      * }" ;;
         "")                 exit 1 ;;
         *)                  { declare -f __dacti_selection_custom > /dev/null && __dacti_selection_custom "$selection" ; } || __dacti_check_status "$selection" ;;
     esac

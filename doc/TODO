@@ -1,0 +1,16 @@
+TODO:
+- better "professional" error handling
+- better "professional" logging
+- try to translate code of utils into bash code
+- correct my english spelling
+- create readme and insert picture in it
+- give much more comments in the script
+- checking for requiered software; optional dmenu, dmenu2, slmenu, tmenu, fzf, selecta
+- create help()
+- manpage
+- more code structure
+- avoid subshells
+- make cleaner conf file
+- optional: messaging with xmessage, notify-send
+- generate category dir hierarchy with own command
+- longterm: tagging and categorizing with own cli commands

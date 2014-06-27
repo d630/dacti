@@ -1,27 +1,20 @@
-#term=xterm
-#xdg_applications_home=${HOME}/.local/share/applications
+# dacti - example configuration file
 
-#menu_0_prompt=">"
+term=xterm
+xdg_applications_home=${HOME}/.local/share/applications
+
+menu_0_prompt=">"
 menu_0[0]=ADDRESSES
 menu_0[1]=BIN-ASC
 menu_0[2]=BIN-ATIME-ASC
 menu_0[3]=BIN-ATIME-DESC
 menu_0[4]=BIN-DESC
-menu_0[5]=CALC
-menu_0[6]=CATEGORIES
-menu_0[7]=CLIP
-menu_0[8]=FILE
-menu_0[9]=KEYWORDS
-menu_0[10]=KUNO
-menu_0[11]=LOG
-menu_0[12]=MARKS
-menu_0[13]=OCCUR
-menu_0[14]=PW
-menu_0[15]=RADIO
-menu_0[16]=TASK-ADD
-menu_0[17]=WEB
-menu_0[18]=WECKER
-menu_0[19]=Z
+menu_0[5]=CATEGORIES
+menu_0[6]=KEYWORDS
+menu_0[7]=LOG
+menu_0[8]=OCCUR
+menu_0[9]=PW
+menu_0[10]=Z
 
 __dacti_menu_cmd_custom()
 {
@@ -55,38 +48,11 @@ __dacti_selection_custom()
         z)
                 spacefm_run_z-list.sh
                 ;;
-        clip)
-                dmenu_clippboard.sh
-                ;;
-        web)
-                firefox_run_url.sh
-                ;;
-        radio)
-                webradio.sh
-                ;;
-        file)
-                dmenu_special_files.sh
-                ;;
-        marks)
-                dmenu_run_marks.sh
-                ;;
         pw)
                 dmenu_run_pass.sh
                 ;;
         addresses)
                 ${term} -e "nottoomuch_wrapper.sh;${SHELL:-"bash"}" 2>/dev/null
-                ;;
-        task-add)
-                ${term} -e "taskwarrior_add.sh;${SHELL:-"bash"}"
-                ;;
-        kuno)
-                ${term} -e "kuno.sh;${SHELL:-"bash"}"
-                ;;
-        wecker)
-                ${term} -e "wecker_gui.sh;${SHELL:-"bash"}"
-                ;;
-        calc)
-                ${term} -e "calc.sh;${SHELL:-"bash"}"
                 ;;
         *)
                 return 1
@@ -94,6 +60,6 @@ __dacti_selection_custom()
     esac
 }
 
-#__dacti_do_win_sg_custom() { wmctrl -i -a "${xids[0]}" ; }
+__dacti_do_win_sg_custom() { wmctrl -i -a "${xids[0]}" ; }
 
-#__dacti_do_win_pl_custom() { for i in "${xids[@]}" ; do wmctrl -i -a "$i" ; done ; }
+__dacti_do_win_pl_custom() { for i in "${xids[@]}" ; do wmctrl -i -a "$i" ; done ; }

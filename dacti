@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.26" ; }
+__dacti_version() { echo "0.0.9.27" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 

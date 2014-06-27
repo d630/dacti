@@ -732,8 +732,6 @@ declare -ra xdg_applications=(${xdg_applications[@]/%/\/applications})
 
 declare -a menu_0=(${menu_0[@]:-CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR})
 
-
-
 declare \
         invocation_mode= \
         menu_cmd= \

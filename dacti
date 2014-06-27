@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.18" ; }
+__dacti_version() { echo "0.0.9.19" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -528,7 +528,6 @@ __dacti_index_applications()
 
     if [[ -f $DACTI_APPS_CACHE_FILE ]]
     then
-        comm -23 <(find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -printf '%T@ %p\n' | sort -n | tee "${DACTI_APPS_CACHE_FILE}.$$") "$DACTI_APPS_CACHE_FILE" |
         while read -r _ file
         do
             path=$file
@@ -537,11 +536,10 @@ __dacti_index_applications()
             sed -i -e "/^.* \<${file%.desktop}\> .*/ d" "$DACTI_APPS_INDEX_FILE"
             egrep -q -e 'Terminal=(1|[tT]rue|[yY]es)' "$path" && mode=cli
             printf '%s\n' "reg ${mode:-gui} ${file%.desktop} ${path}" >> "$DACTI_APPS_INDEX_FILE"
-        done
+        done < <(comm -23 <(find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -printf '%T@ %p\n' | sort -n | tee "${DACTI_APPS_CACHE_FILE}.$$") "$DACTI_APPS_CACHE_FILE")
         mv -- "${DACTI_APPS_CACHE_FILE}.$$" "${DACTI_APPS_CACHE_FILE}"
     else
         exec 3>>"$DACTI_APPS_INDEX_FILE"
-        find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -printf '%T@ %p\n' | sort -n | tee "$DACTI_APPS_CACHE_FILE" |
         while read -r _ file
         do
             path=$file
@@ -549,7 +547,7 @@ __dacti_index_applications()
             mode=gui
             egrep -q -e 'Terminal=(1|[tT]rue|[yY]es)' "$path" && mode=cli
             printf '%s\n' "reg ${mode:-gui} ${file%.desktop} ${path}" 1>&3
-        done
+        done < <(find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -printf '%T@ %p\n' | sort -n | tee "$DACTI_APPS_CACHE_FILE")
         exec 3<&-
     fi
 }

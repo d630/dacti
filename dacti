@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.13" ; }
+__dacti_version() { echo "0.0.9.14" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -44,11 +44,11 @@ __dacti_bin_atime_desc() { find ${PATH//:/ } \( -type f -o -type l \) -printf '%
 
 __dacti_bin_desc() { lsx ${PATH//:/ } | sort -r | uniq ; }
 
-__dacti_menu() { ${menu_cmd} -p "${1:-\$}" $d_opt $d_screen $d_name $d_class $d_h $d_w $d_x $d_y $d_o $d_dim $d_dc ${d_color[*]} $d_fn ; }
+__dacti_menu() { ${menu_cmd} -p "${1:->}" $d_opt $d_screen $d_name $d_class $d_h $d_w $d_x $d_y $d_o $d_dim $d_dc ${d_color[*]} $d_fn ; }
 
-__dacti_log() { sort -rn "$DACTI_LOG_FILE" ; }
+__dacti_occur() { grep -e '^.* launch .*$' "$DACTI_LOG_FILE" | cut -d ' ' -f3 | sort | uniq -c | sort -nr ; }
 
-__dacti_occur() { grep ' launch ' "$DACTI_LOG_FILE" | cut -d ' ' -f3 | sort | uniq -c | sort -nr ; }
+__dacti_browse_log() { sort -rn "$DACTI_LOG_FILE" ; }
 
 __dacti_browse_categories()
 {
@@ -60,7 +60,7 @@ __dacti_browse_categories()
 
     [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] &&
     {
-        __dacti_update_categories
+        __dacti_update_categories && __dacti_logger "Categories: Update has been processed."
         selection=${selection#:* }
     }
 
@@ -69,7 +69,7 @@ __dacti_browse_categories()
     while [[ $selection ]]
     do
         read -r selection < <({ printf '%s\n' '[..]' '[.]' ; find "${DACTI_CATS_DATA_DIR%/*}/${parent}" -mindepth 1 -maxdepth 1 -printf '%f\n' ; } | sort | __dacti_menu ${parent##*/})
-        case $selection  in
+        case $selection in
             \[..\])     parent=${parent%/*}                           ;;
             \[.\])      parent=$parent                                ;;
             *.desktop)  __dacti_check_status "${selection%.desktop}"  ;;
@@ -148,7 +148,7 @@ __dacti_browse_keywords()
 
     [[ $selection == :* ]] &&
     {
-        [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && __dacti_update_keywords
+        [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && __dacti_update_keywords && __dacti_logger "Keywords: Update has been proccessed."
         [[ $selection =~ ^:.*q.*[[:space:]].*$ ]] && query_keywords=query_keywords
         selection=${selection#:* }
     }
@@ -260,14 +260,14 @@ __dacti_check_status()
 
     __dacti_exec_selection()
     {
-        command -v "${selection% *}" >/dev/null || return 1
+        command -v "${selection% *}" 1>/dev/null 2>&1 || return 1
         selection=${sections[${section_number} Exec]:-$selection}
 
         if [[ ${sections[${section_number} Terminal]} =~ (1|true|yes) && ( ${sections[${section_number} X_dacti_new_term]} =~ (1|true|yes) || $invocation_mode == gui ) ]]
         then
             (exec ${term} -e "$selection;${SHELL:-bash}" 2>/dev/null &)
         else
-           (exec ${selection} 2>/dev/null &)
+            (exec ${selection} 2>/dev/null &)
         fi
     }
 
@@ -298,6 +298,7 @@ X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
 X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
 X-dacti_win_sg=" >> "${xdg_applications_home}/${selection% *}.desktop"
+        __dacti_logger "${selection% *}: An already existed Desktop File has been updated."
         else
         printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" >> "$DACTI_APPS_INDEX_FILE"
         printf '%s\n' "[Desktop Entry]
@@ -331,6 +332,7 @@ X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
 X-dacti_win_sg=" > "${xdg_applications_home}/${selection% *}.desktop"
         chmod 755 "${xdg_applications_home}/${selection% *}.desktop"
+        __dacti_logger "${selection% *}: New Desktop File has been created."
         fi
     }
 
@@ -436,15 +438,15 @@ X-dacti_win_sg=" > "${xdg_applications_home}/${selection% *}.desktop"
     sections[${section_number} X_dacti_mode]=${sections[${section_number} X_dacti_mode]:-gui}
 
     case ${sections[${section_number} X_dacti_status]} in
-        block)      [[ ! $build_new_file ]] && return 1 ;;
-        ign)        __dacti_exec_selection ;;
+        block)      [[ ! $build_new_file ]] && __dacti_logger "${selection% *}: block status true." && return 1 ;;
+        ign)        __dacti_logger "${selection% *}: ign status true." && __dacti_exec_selection ;;
         *)          __dacti_check_wins ;;
     esac
 
     [[ $build_new_file ]] && __dacti_build_new_file
     printf '%s\n' "$(date +%Y-%m-%d_%H:%M) launch ${selection% *}" >> "$DACTI_LOG_FILE"
 
-    exit 0
+    __dacti_status_code 0 "Quit: Execution has finished."
 }
 
 __dacti_selection_0()
@@ -535,7 +537,7 @@ __dacti_index_applications()
             file=${file##*/}
             mode=gui
             egrep -q -e 'Terminal=(1|[tT]rue|[yY]es)' "$path" && mode=cli
-            printf '%s\n' "reg ${mode:-gui} ${file%.desktop} ${path}" >&3
+            printf '%s\n' "reg ${mode:-gui} ${file%.desktop} ${path}" 1>&3
         done
         exec 3<&-
     fi
@@ -613,8 +615,31 @@ __dacti_check_args()
             declare -g "$o"
         done
     else
-        { printf '%s\n' "Option -${opt} requires an argument." >&2 ; exit 1 ; }
+        { printf '%s\n' "Option -${opt} requires an argument." 1>&2 ; exit 1 ; }
     fi
+}
+
+__dacti_status_code()
+{
+    declare \
+            status_code=$1 \
+            status_message=$2
+
+    if (($status_code == 0))
+    then
+        printf '%s\n' "$(date +%Y-%m-%d_%H:%M) success ${status_message}" >> "$DACTI_LOG_FILE"
+    else
+        printf '%s\n' "${0##*/}:Status:Error:${status_code}: ${error_message}" 1>&2
+        printf '%s\n' "$(date +%Y-%m-%d_%H:%M) error ${status_message}" >> "$DACTI_LOG_FILE"
+    fi
+
+    exit "$status_code"
+}
+
+__dacti_logger()
+{
+    declare log_message=$1
+    printf '%s\n' "$(date +%Y-%m-%d_%H:%M) event ${log_message}" >> "$DACTI_LOG_FILE"
 }
 
 # -- MAIN.
@@ -667,7 +692,12 @@ declare -r DACTI_CONF_FILE=${DACTI_CONF_FILE:-${predir_configdir}/dacti}/dacti.c
 
 declare -A d_color
 
-[[ -f $DACTI_CONF_FILE ]] && source "$DACTI_CONF_FILE"
+if [[ -f $DACTI_CONF_FILE ]]
+then
+    source "$DACTI_CONF_FILE" 2>/dev/null || { printf '%s\n' "${0##*/}:Status:Error:1: ${DACTI_CONF_FILE} has not been sourced." 1>&2 ; exit 1 ; }
+else
+     { printf '%s\n' "${0##*/}:Status:Error:1: ${$DACTI_CONF_FILE} is not a regular file." 1>&2 ; exit 1 ; }
+fi
 
 declare -r DACTI_DATA_DIR=${DACTI_DATA_DIR:-${predir_datadir}/dacti} \
 
@@ -699,22 +729,25 @@ declare \
         menu_cmd= \
         selection=
 
-if command -v "dmenu2" >/dev/null
+[[ $log_file == true ]] || declare log_file=
+[[ $xmessage == true ]] || declare xmessage=
+
+if command -v "dmenu2" 1>/dev/null 2>&1
 then
     menu_cmd=dmenu2
 else
     menu_cmd=dmenu
 fi
 
-if tty &> /dev/null
+if tty 1>/dev/null 2>&1
 then
     invocation_mode=cli
-    command -v "slmenu" >/dev/null && menu_cmd=slmenu
+    command -v "slmenu" 1>/dev/null 2>&1 && menu_cmd=slmenu
 elif [[ $DISPLAY ]]
 then
     invocation_mode=gui
 else
-    exit 1
+    { printf '%s\n' "${0##*/}:Status:Error:1: Neither cli nor gui mode." 1>&2 ; exit 1 ; }
 fi
 
 [[ -d $DACTI_DATA_DIR ]] || mkdir -p "$DACTI_DATA_DIR"
@@ -723,7 +756,7 @@ fi
 [[ $index_applications == index_applications ]] && __dacti_index_applications
 [[ $update_categories == update_categories ]] && __dacti_update_categories
 [[ $update_keywords == update_keywords ]] && __dacti_update_keywords
-[[ $quit == quit ]] && exit 0
+[[ $quit == quit ]] && __dacti_status_code 0 "Quit: With these command line options: ${index_applications/%/ }${update_categories/%/ }${update_keywords}."
 
 unset -v \
          arg \
@@ -745,9 +778,11 @@ do
         \[bin-desc\])       __dacti_check_status "$(__dacti_bin_desc | __dacti_menu "BIN-DESC")" ;;
         *\[categories\])    __dacti_browse_categories "$selection" ;;
         *\[keywords\])      __dacti_browse_keywords "$selection" ;;
-        \[log\])            selection=$(__dacti_log | __dacti_menu "LOG") && __dacti_check_status "${selection#* * }" ;;
+        \[log\])            selection=$(__dacti_browse_log | __dacti_menu "LOG") &&
+                            [[ $selection =~ (^.* launch .*$) ]] &&
+                            __dacti_check_status "${selection#* * }" || continue ;;
         \[occur\])          selection=$(__dacti_occur | __dacti_menu "OCCUR") && __dacti_check_status "${selection#      * }" ;;
-        "")                 exit 1 ;;
+        "")                 __dacti_status_code 0 "Quit: Nothing has been chosen." ;;
         *)                  { declare -f __dacti_selection_custom > /dev/null && __dacti_selection_custom "$selection" ; } || __dacti_check_status "$selection" ;;
     esac
 done

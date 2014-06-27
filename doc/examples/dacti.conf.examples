@@ -16,51 +16,53 @@ d_fn='-fn -*-terminus-medium-*-*-*-14-*-*-*-*-*-iso10646-*'
 
 #term=xterm
 #xdg_applications_home=${HOME}/.local/share/applications
+menu_0=(CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR)
+
 #menu_0=(CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR)
 
-__dacti_selection_custom()
-{
-    declare selection=$@
-
-    case ${selection,,} in
-        z)
-                spacefm_run_z-list.sh
-                ;;
-        clip)
-                dmenu_clippboard.sh
-                ;;
-        web)
-                firefox_run_url.sh
-                ;;
-        radio)
-                webradio.sh
-                ;;
-        file)
-                dmenu_special_files.sh
-                ;;
-        marks)
-                dmenu_run_marks.sh
-                ;;
-        pw)
-                dmenu_run_pass.sh
-                ;;
-        addresses)
-                ${term} "nottoomuch_wrapper.sh;${SHELL:-"bash"}" 2>/dev/null
-                ;;
-        task-add)
-                ${term} "taskwarrior_add.sh;${SHELL:-"bash"}"
-                ;;
-        kuno)
-                ${term} "kuno.sh;${SHELL:-"bash"}"
-                ;;
-        wecker)
-                ${term} "wecker_gui.sh;${SHELL:-"bash"}"
-                ;;
-        calc)
-                ${term} "calc.sh;${SHELL:-"bash"}"
-                ;;
-        *)
-                return 1
-                ;;
-    esac
-}
+#~ __dacti_selection_custom()
+#~ {
+    #~ declare selection=$@
+#~
+    #~ case ${selection,,} in
+        #~ z)
+                #~ spacefm_run_z-list.sh
+                #~ ;;
+        #~ clip)
+                #~ dmenu_clippboard.sh
+                #~ ;;
+        #~ web)
+                #~ firefox_run_url.sh
+                #~ ;;
+        #~ radio)
+                #~ webradio.sh
+                #~ ;;
+        #~ file)
+                #~ dmenu_special_files.sh
+                #~ ;;
+        #~ marks)
+                #~ dmenu_run_marks.sh
+                #~ ;;
+        #~ pw)
+                #~ dmenu_run_pass.sh
+                #~ ;;
+        #~ addresses)
+                #~ ${term} "nottoomuch_wrapper.sh;${SHELL:-"bash"}" 2>/dev/null
+                #~ ;;
+        #~ task-add)
+                #~ ${term} "taskwarrior_add.sh;${SHELL:-"bash"}"
+                #~ ;;
+        #~ kuno)
+                #~ ${term} "kuno.sh;${SHELL:-"bash"}"
+                #~ ;;
+        #~ wecker)
+                #~ ${term} "wecker_gui.sh;${SHELL:-"bash"}"
+                #~ ;;
+        #~ calc)
+                #~ ${term} "calc.sh;${SHELL:-"bash"}"
+                #~ ;;
+        #~ *)
+                #~ return 1
+                #~ ;;
+    #~ esac
+#~ }

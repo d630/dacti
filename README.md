@@ -1,4 +1,4 @@
-Activate apps in selection menus (run or raise; launch). Works with desktop files. Deafault is dmenu, but you can choose your own (fzf, selecta, tmenu, selecta etc.)
+Activate apps in selection menus (run or raise; launch). Works with desktop files. Default is dmenu, but you can use your own (fzf, selecta, tmenu, selecta etc.)
 
 ```bash
 dacti (-h|-v|) [-C] [-a|-c|-k|-q]

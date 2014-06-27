@@ -34,7 +34,65 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.27" ; }
+__dacti_version() { echo "0.0.9.28" ; }
+
+__dacti_help()
+{
+    printf '%s\n' 'dacti (-h|-v|) [-C] [-a|-c|-k|-q]
+
+    Cli
+      -a   --update-applications Index all desktop files.
+      -C,  --conf-file=<FILE>    Source a file as conf file.
+      -c,  --update-categories   Index all categories.
+      -h,  --help
+      -k,  --update-keywords     Index all keywords.
+      -q,  --quit                Quit before performing the main
+                                 selection menu.
+      -v,  --version
+
+    Main selection menu
+      [KEYWORDS]                 Browse keywords in a selection menu and
+                                 select associated desktop files.
+        :u [KEYWORDS]            Update the keyword index before.
+        :q [KEYWORDS]            Invoke a query menu and look for desktop
+                                 files.
+      [CATEGORIES]               Browse all categories in a selection menu
+                                 and select associated desktop files.
+        :u [CATEGORIES]          Update the category index before.
+      [BIN-ASC]                  Browse all binaries inside the enviroment
+                                 variable <PATH> in a selection menu. Sort
+                                 them in ascending order by its names.
+      [BIN-DESC]                 Browse all binaries inside the enviroment
+                                 variable <PATH> in a selection menu. Sort
+                                 them in descending order by its names.
+      [BIN-ATIME-ASC]            Browse all binaries inside the enviroment
+                                 variable <PATH> in a selection menu. Sort
+                                 them in ascending order by its access time.
+      [BIN-ATIME-DESC]           Browse all binaries inside the enviroment
+                                 variable <PATH> in a selection menu. Sort
+                                 them in descending order by its access
+                                 time.
+      [LOG]                      Browse all log entries of dacti in a
+                                 selection menu. Start applications from
+                                 it by selecting
+                                 entries with the event "launch".
+      [OCCUR]                    Browse applications by its occurence
+                                 based on the log file.
+
+    Application
+      <APP>                      Launch application.
+        :b <APP>                 Declare status "block".
+        :c <APP>                 App has a cli and needs a terminal (mode=cli).
+        :i <APP>                 Declare status "ign".
+        :n <APP>                 App should start in a new terminal instance.
+        :p <APP>                 Dont check, if app is indexed. Launch it
+                                 directly and create no new desktop file.
+        :t <APP>                 Apps has a tui and needs a terminal (mode=tui).
+        :u <APP>                 Dont check, if app is indexed. Launch it
+                                 directly and create a new desktop file or
+                                 entry.
+'
+}
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -399,16 +457,19 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
                 [[ $selection =~ ^:.*i.*[[:space:]].*$ ]] && status=ign
                 [[ $selection =~ ^:.*n.*[[:space:]].*$ ]] && new_terminal=true
                 [[ $selection =~ ^:.*p.*[[:space:]].*$ ]] && pretend=pretend
-                [[ $selection =~ ^:.*r.*[[:space:]].*$ ]] && status=reg
                 [[ $selection =~ ^:.*t.*[[:space:]].*$ ]] && terminal=true && mode=tui
                 [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && build_new_file=build_new_file
                 selection=${selection#:* }
                 ;;
     esac
 
-    # If option ":p" and "u" have not been set, then we will look for the application in the application index file and declare some variables.
+    # If option ":p" and ":u" have not been set, then we will look for the application in the application index file and declare some variables.
     [[ $pretend != pretend && $build_new_file != build_new_file ]] &&
     {
+        status=
+        terminal=
+        new_terminal=
+
         while read -r apps_status apps_mode apps_app apps_file
         do
             [[ $apps_app == ${selection% *} && -f $apps_file ]] &&
@@ -442,12 +503,11 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
                                     selection=$(__dacti_menu_cmd "COMMAND" <<< "$selection")
                                     ;&
                             3)
-                                    selec=$(__dacti_menu_cmd "OPTIONS [bcinrtu]" <<< ":")
+                                    selec=$(__dacti_menu_cmd "OPTIONS [bcintu]" <<< ":")
                                     [[ $selec =~ ^:.*b.*$ ]] && status=block
                                     [[ $selec =~ ^:.*c.*$ ]] && terminal=true && mode=cli
                                     [[ $selec =~ ^:.*i.*$ ]] && status=ign
                                     [[ $selec =~ ^:.*n.*$ ]] && new_terminal=true
-                                    [[ $selec =~ ^:.*r.*$ ]] && status=reg
                                     [[ $selec =~ ^:.*t.*$ ]] && terminal=true && mode=tui
                                     [[ $selec =~ ^:.*u.*$ ]] && build_new_file=build_new_file
                                     [[ ! $selection ]] && return 1
@@ -476,7 +536,8 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
     case ${sections[${section_number} X_dacti_status]} in
         block)      [[ ! $build_new_file ]] && __dacti_logger "${selection% *}: block status true." && return 1 ;;
         ign)        __dacti_logger "${selection% *}: ign status true." && __dacti_exec_selection ;;
-        *)          __dacti_check_wins ;;
+        reg)        __dacti_check_wins ;;
+        *)          __dacti_status_code 1 "Quit: Status ${status} is unknown."
     esac
 
     # Create new desktop file, if invoked with ":u" or if there is no entry in the index file.
@@ -545,7 +606,7 @@ __dacti_comm_array()
     done
 }
 
-__dacti_index_applications()
+__dacti_update_applications()
 {
     declare \
             file= \
@@ -684,9 +745,9 @@ declare \
         arg= \
         args= \
         delim= \
-        index_applications= \
         opt= \
         quit= \
+        update_applications= \
         update_categories= \
         update_keywords=
 
@@ -696,10 +757,12 @@ do
     arg=${arg#--}
     case $arg in
         conf-file=*)            args="${args}-C ${arg#*=} "            ;;
-        index-applications)     args="${args}-x "                      ;;
+        help)                   args="${args}-h "                      ;;
+        update-applications)    args="${args}-a "                      ;;
         quit)                   args="${args}-q "                      ;;
         update-categories)      args="${args}-c "                      ;;
         update-keywords)        args="${args}-k "                      ;;
+        version)                args="${args}-v "                      ;;
         *)                      [[ ${arg:0:1} != - ]] && delim=\"
                                 args="${args}${arg} "
                                 delim=                                 ;;
@@ -708,14 +771,16 @@ done
 
 # Do getopts.
 eval set -- $args
-while getopts :cC:kqx opt
+while getopts :acC:hkqv opt
 do
     case $opt in
-        c)      update_categories=update_categories                   ;;
+        a)      update_applications=update_applications               ;;
         C)      __dacti_check_args "DACTI_CONF_FILE=$OPTARG"          ;;
+        c)      update_categories=update_categories                   ;;
+        h)      __dacti_help ; exit 0                                 ;;
         k)      update_keywords=update_keywords                       ;;
         q)      quit=quit                                             ;;
-        x)      index_applications=index_applications                 ;;
+        v)      __dacti_version ; exit 0                              ;;
     esac
 done
 shift $((OPTIND-1))
@@ -781,7 +846,7 @@ fi
 [[ -f $DACTI_APPS_INDEX_FILE ]] || 1> "$DACTI_APPS_INDEX_FILE"
 
 # Perform options from command line.
-[[ $index_applications == index_applications ]] && __dacti_index_applications
+[[ $update_applications == update_applications ]] && __dacti_update_applications
 [[ $update_categories == update_categories ]] && __dacti_update_categories
 [[ $update_keywords == update_keywords ]] && __dacti_update_keywords
 [[ $quit == quit ]] && __dacti_status_code 0 "Quit: With these command line options: ${index_applications:+${index_applications/%/ }}${update_categories:+${update_categories/%/ }}${update_keywords}."
@@ -791,9 +856,9 @@ unset -v \
          arg \
          args \
          delim \
-         index_applications \
          opt \
          quit \
+         update_applications \
          update_categories \
          update_keywords
 

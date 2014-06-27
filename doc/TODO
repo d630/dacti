@@ -4,9 +4,7 @@ TODO:
 - try to translate code of utils into bash code
 - correct my english spelling
 - create readme and insert picture in it
-- create help()
 - manpage
-- more code structure
 - optional: messaging with xmessage, notify-send
 - generate category dir hierarchy with own command
 - longterm: tagging and categorizing with own cli commands
@@ -17,3 +15,4 @@ DONE:
 - checking for requiered software; optional dmenu, dmenu2, slmenu, tmenu, fzf, selecta
 - give much more comments in the script
 - make cleaner conf file
+- create help()

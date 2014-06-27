@@ -426,7 +426,7 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
             }
         done < "$DACTI_APPS_INDEX_FILE"
 
-        # If application has been indexed and has more than one exec key, then decide what to do.
+        # If application has been indexed and has more than one exec key, then decide, what to do.
         case $section_number in
             0)
                     build_new_file=build_new_file
@@ -567,7 +567,7 @@ __dacti_index_applications()
         done < <(comm -23 <(find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -printf '%T@ %p\n' | sort -n | tee "${DACTI_APPS_CACHE_FILE}.$$") "$DACTI_APPS_CACHE_FILE")
         mv -- "${DACTI_APPS_CACHE_FILE}.$$" "${DACTI_APPS_CACHE_FILE}"
     else
-        # if there is no cache file, create a new index file.
+        # If there is no cache file, create a new index file.
         while read -r _ file
         do
             path=$file

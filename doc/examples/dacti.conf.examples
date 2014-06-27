@@ -74,19 +74,19 @@ __dacti_selection_custom()
                 dmenu_run_pass.sh
                 ;;
         addresses)
-                ${term} "nottoomuch_wrapper.sh;${SHELL:-"bash"}" 2>/dev/null
+                ${term} -e "nottoomuch_wrapper.sh;${SHELL:-"bash"}" 2>/dev/null
                 ;;
         task-add)
-                ${term} "taskwarrior_add.sh;${SHELL:-"bash"}"
+                ${term} -e "taskwarrior_add.sh;${SHELL:-"bash"}"
                 ;;
         kuno)
-                ${term} "kuno.sh;${SHELL:-"bash"}"
+                ${term} -e "kuno.sh;${SHELL:-"bash"}"
                 ;;
         wecker)
-                ${term} "wecker_gui.sh;${SHELL:-"bash"}"
+                ${term} -e "wecker_gui.sh;${SHELL:-"bash"}"
                 ;;
         calc)
-                ${term} "calc.sh;${SHELL:-"bash"}"
+                ${term} -e "calc.sh;${SHELL:-"bash"}"
                 ;;
         *)
                 return 1

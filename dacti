@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.25" ; }
+__dacti_version() { echo "0.0.9.26" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -66,12 +66,14 @@ __dacti_browse_categories()
             selection=$1 \
             parent=
 
+    # Update categories before, if wanted with ":u".
     [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] &&
     {
         __dacti_update_categories && __dacti_logger "Categories: Update has been processed."
         selection=${selection#:* }
     }
 
+    # Now handle the selection menu and perform selections.
     read -r selection < <(find "$DACTI_CATS_DATA_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | __dacti_menu_cmd "CATEGORIES")
     parent=${DACTI_CATS_DATA_DIR##*/}/${selection}
     while [[ $selection ]]
@@ -154,6 +156,7 @@ __dacti_browse_keywords()
     declare -A search \
                operators
 
+    # If wanted with ":u", update keywords before.
     [[ $selection == :* ]] &&
     {
         [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && __dacti_update_keywords && __dacti_logger "Keywords: Update has been proccessed."
@@ -163,6 +166,7 @@ __dacti_browse_keywords()
 
     if [[ $query_keywords ]]
     then
+        # Perform selection menu with an interactive query.
         selection=
         eval query=($(__dacti_menu_cmd "QUERY" <<< ""))
         for i in "${query[@]}"
@@ -180,6 +184,7 @@ __dacti_browse_keywords()
         selection=$(for key in "${!search[@]}" ; do printf '%s\n' "${key##*/}" ; done | __dacti_menu_cmd "MATCH")
         [[ $selection ]] && __dacti_check_status "${selection%.desktop}"
     else
+        # Just perform the selection menu.
         read -r selection < <(__dacti_menu_cmd "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")
         while [[ $selection ]]
         do
@@ -219,6 +224,7 @@ __dacti_check_status()
 
         if [[ ${sections[${section_number} X_dacti_mode]} != gui ]]
         then
+            # If application has the status "cli" or "tui", search the window id of its parent pid (a terminal).
             for pid in $(pgrep -d ' ' "${selection% *}")
             do
                 until [[ ${pid// /} == 0 ]]
@@ -236,6 +242,7 @@ __dacti_check_status()
                 done
             done
         else
+            # Just search the window id of the application itself ( status=gui).
             for id in ${net_client_list//,/}
             do
                 [[ $(xprop -id "$id" WM_CLASS) =~ ${sections[${section_number} StartupWMClass]:-${selection% *}} ]] &&
@@ -244,6 +251,7 @@ __dacti_check_status()
             done
         fi
 
+        # Now we decide, what to do relative to the number of collected window ids.
         case ${#xids[@]} in
             0)
                     __dacti_exec_selection
@@ -279,9 +287,11 @@ __dacti_check_status()
 
     __dacti_exec_selection()
     {
+        # Check, if selected command, exists.
         command -v "${selection% *}" 1>/dev/null 2>&1 || return 1
         selection=${sections[${section_number} Exec]:-$selection}
 
+        # Check, if selected command needs to have a terminal; relative to the invocation mode and option ":n".
         if [[ ${sections[${section_number} Terminal]} =~ (1|true|yes) && ( ${sections[${section_number} X_dacti_new_term]} =~ (1|true|yes) || $invocation_mode == gui ) ]]
         then
             (exec ${term} -e "$selection;${SHELL:-bash}" 2>/dev/null &)
@@ -300,6 +310,7 @@ __dacti_check_status()
 
         if [[ -f ${xdg_applications_home}/${selection% *}.desktop ]]
         then
+            # If a desktop file has already been created in "${xdg_applications_home}", then its desktop file needs to be updated. We insert then a new application section/group.
             name=$(__dacti_menu_cmd "Enter a name" <<< "${selection% *}")
             action_name=${selection% *}_${RANDOM}
             while IFS='=' read -r key val
@@ -319,8 +330,9 @@ X-dacti_win_pl=
 X-dacti_win_sg=" 1>> "${xdg_applications_home}/${selection% *}.desktop"
         __dacti_logger "${selection% *}: An already existed Desktop File has been updated."
         else
-        printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" 1>> "$DACTI_APPS_INDEX_FILE"
-        printf '%s\n' "[Desktop Entry]
+            # Create new desktop file with all official keys + dactis own keys.
+            printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" 1>> "$DACTI_APPS_INDEX_FILE"
+            printf '%s\n' "[Desktop Entry]
 Actions=
 Categories=
 Comment=
@@ -376,6 +388,7 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
 
     declare -A sections
 
+    # Check, if selected application has been invoked with options (:bcinprtu).
     case $selection in
         "")
                 return 1
@@ -393,6 +406,7 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
                 ;;
     esac
 
+    # If option ":p" and "u" have not been set, then we will look for the application in the application index file and declare some variables.
     [[ $pretend != pretend && $build_new_file != build_new_file ]] &&
     {
         while read -r apps_status apps_mode apps_app apps_file
@@ -412,6 +426,7 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
             }
         done < "$DACTI_APPS_INDEX_FILE"
 
+        # If application has been indexed and has more than one exec key, then decide what to do.
         case $section_number in
             0)
                     build_new_file=build_new_file
@@ -449,6 +464,7 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
         esac
     }
 
+    # Set application specific variables.
     sections[${section_number} X_dacti_status]=${status:-${sections[${section_number} X_dacti_status]}}
     sections[${section_number} X_dacti_status]=${sections[${section_number} X_dacti_status]:-reg}
     sections[${section_number} Terminal]=${terminal:-${sections[${section_number} Terminal]}}
@@ -456,12 +472,14 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
     sections[${section_number} X_dacti_mode]=${mode:-${sections[${section_number} X_dacti_mode]}}
     sections[${section_number} X_dacti_mode]=${sections[${section_number} X_dacti_mode]:-gui}
 
+    # Check the status of the application.
     case ${sections[${section_number} X_dacti_status]} in
         block)      [[ ! $build_new_file ]] && __dacti_logger "${selection% *}: block status true." && return 1 ;;
         ign)        __dacti_logger "${selection% *}: ign status true." && __dacti_exec_selection ;;
         *)          __dacti_check_wins ;;
     esac
 
+    # Create new desktop file, if invoked with ":u" or if there is no entry in the index file.
     [[ $build_new_file ]] && __dacti_build_new_file
     printf '%s\n' "$(date +%Y-%m-%d_%H:%M) launch ${selection% *}" 1>> "$DACTI_LOG_FILE"
 
@@ -537,6 +555,7 @@ __dacti_index_applications()
     exec 3>>"$DACTI_APPS_INDEX_FILE"
     if [[ -f $DACTI_APPS_CACHE_FILE ]]
     then
+        # If there is an application cache file, then compare it with the current state and update the application index file.
         while read -r _ file
         do
             path=$file
@@ -548,6 +567,7 @@ __dacti_index_applications()
         done < <(comm -23 <(find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -printf '%T@ %p\n' | sort -n | tee "${DACTI_APPS_CACHE_FILE}.$$") "$DACTI_APPS_CACHE_FILE")
         mv -- "${DACTI_APPS_CACHE_FILE}.$$" "${DACTI_APPS_CACHE_FILE}"
     else
+        # if there is no cache file, create a new index file.
         while read -r _ file
         do
             path=$file
@@ -659,12 +679,18 @@ __dacti_logger()
 
 # -- MAIN.
 
+# Prepare performing options from command line.
 declare \
         arg= \
         args= \
         delim= \
-        opt=
+        index_applications= \
+        opt= \
+        quit= \
+        update_categories= \
+        update_keywords=
 
+# Translate long options into short options.
 for arg
 do
     arg=${arg#--}
@@ -680,12 +706,7 @@ do
     esac
 done
 
-declare \
-        index_applications= \
-        quit= \
-        update_categories= \
-        update_keywords=
-
+# Do getopts.
 eval set -- $args
 while getopts :cC:kqx opt
 do
@@ -699,6 +720,7 @@ do
 done
 shift $((OPTIND-1))
 
+# Declare some enviroments, before we will source a Conf File.
 declare -r \
            predir_datadir=${XDG_DATA_HOME:-${HOME}/.local/share} \
            predir_configdir=${XDG_CONFIG_HOME:-${HOME}/.config}
@@ -717,6 +739,7 @@ else
      { printf '%s\n' "${0##*/}:Status:Error:1: ${$DACTI_CONF_FILE} is not a regular file." 1>&2 ; exit 1 ; }
 fi
 
+# Now declare all other enviroment variables.
 declare -r DACTI_DATA_DIR=${DACTI_DATA_DIR:-${predir_datadir}/dacti}
 declare -r \
            DACTI_APPS_INDEX_FILE=${DACTI_APPS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_applications.index} \
@@ -733,12 +756,12 @@ declare -r \
 declare -r DACTI_APPS_DIRS=${DACTI_APPS_DIRS:-${xdg_data_dirs}}
 declare -a xdg_applications=(${DACTI_APPS_DIRS//:/ })
 declare -ra xdg_applications=(${xdg_applications[@]/%/\/applications})
-
 declare -r menu_0_prompt=${menu_0_prompt:->} \
            term=${term:-xterm} \
            xdg_applications_home=${xdg_applications_home:-${predir_datadir}/applications}
 declare -a menu_0=(${menu_0[@]:-CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR})
 
+# Declare last variables.
 declare \
         invocation_mode= \
         selection=
@@ -753,14 +776,17 @@ else
     { printf '%s\n' "${0##*/}:Status:Error:1: Neither cli nor gui mode." 1>&2 ; exit 1 ; }
 fi
 
+# Create index file and app dir, if they have not been created before.
 [[ -d $DACTI_DATA_DIR ]] || mkdir -p "$DACTI_DATA_DIR"
 [[ -f $DACTI_APPS_INDEX_FILE ]] || 1> "$DACTI_APPS_INDEX_FILE"
 
+# Perform options from command line.
 [[ $index_applications == index_applications ]] && __dacti_index_applications
 [[ $update_categories == update_categories ]] && __dacti_update_categories
 [[ $update_keywords == update_keywords ]] && __dacti_update_keywords
 [[ $quit == quit ]] && __dacti_status_code 0 "Quit: With these command line options: ${index_applications:+${index_applications/%/ }}${update_categories:+${update_categories/%/ }}${update_keywords}."
 
+# Unset variables, we do not need anymore.
 unset -v \
          arg \
          args \
@@ -771,6 +797,7 @@ unset -v \
          update_categories \
          update_keywords
 
+# Perform the main selection menu and handle selections.
 while :
 do
     selection=$(__dacti_selection_0 | __dacti_menu_cmd)

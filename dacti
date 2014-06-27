@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.22" ; }
+__dacti_version() { echo "0.0.9.23" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -764,7 +764,7 @@ fi
 [[ $index_applications == index_applications ]] && __dacti_index_applications
 [[ $update_categories == update_categories ]] && __dacti_update_categories
 [[ $update_keywords == update_keywords ]] && __dacti_update_keywords
-[[ $quit == quit ]] && __dacti_status_code 0 "Quit: With these command line options: ${index_applications/%/ }${update_categories/%/ }${update_keywords}."
+[[ $quit == quit ]] && __dacti_status_code 0 "Quit: With these command line options: ${index_applications:+${index_applications/%/ }}${update_categories:+${update_categories/%/ }}${update_keywords}."
 
 unset -v \
          arg \

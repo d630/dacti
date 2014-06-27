@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.21" ; }
+__dacti_version() { echo "0.0.9.22" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -308,10 +308,10 @@ X-dacti_mode=${sections[${section_number} X_dacti_mode]}
 X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
 X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
-X-dacti_win_sg=" >> "${xdg_applications_home}/${selection% *}.desktop"
+X-dacti_win_sg=" 1>> "${xdg_applications_home}/${selection% *}.desktop"
         __dacti_logger "${selection% *}: An already existed Desktop File has been updated."
         else
-        printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" >> "$DACTI_APPS_INDEX_FILE"
+        printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" 1>> "$DACTI_APPS_INDEX_FILE"
         printf '%s\n' "[Desktop Entry]
 Actions=
 Categories=
@@ -341,7 +341,7 @@ X-dacti_mode=${sections[${section_number} X_dacti_mode]}
 X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
 X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
-X-dacti_win_sg=" > "${xdg_applications_home}/${selection% *}.desktop"
+X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
         chmod 755 "${xdg_applications_home}/${selection% *}.desktop"
         __dacti_logger "${selection% *}: New Desktop File has been created."
         fi
@@ -455,7 +455,7 @@ X-dacti_win_sg=" > "${xdg_applications_home}/${selection% *}.desktop"
     esac
 
     [[ $build_new_file ]] && __dacti_build_new_file
-    printf '%s\n' "$(date +%Y-%m-%d_%H:%M) launch ${selection% *}" >> "$DACTI_LOG_FILE"
+    printf '%s\n' "$(date +%Y-%m-%d_%H:%M) launch ${selection% *}" 1>> "$DACTI_LOG_FILE"
 
     __dacti_status_code 0 "Quit: Execution has finished."
 }
@@ -535,7 +535,7 @@ __dacti_index_applications()
             mode=gui
             sed -i -e "/^.* \<${file%.desktop}\> .*/ d" "$DACTI_APPS_INDEX_FILE"
             egrep -q -e 'Terminal=(1|[tT]rue|[yY]es)' "$path" && mode=cli
-            printf '%s\n' "reg ${mode:-gui} ${file%.desktop} ${path}" >> "$DACTI_APPS_INDEX_FILE"
+            printf '%s\n' "reg ${mode:-gui} ${file%.desktop} ${path}" 1>> "$DACTI_APPS_INDEX_FILE"
         done < <(comm -23 <(find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -printf '%T@ %p\n' | sort -n | tee "${DACTI_APPS_CACHE_FILE}.$$") "$DACTI_APPS_CACHE_FILE")
         mv -- "${DACTI_APPS_CACHE_FILE}.$$" "${DACTI_APPS_CACHE_FILE}"
     else
@@ -609,7 +609,7 @@ __dacti_update_keywords()
         do
             printf '%s\n' "$REPLY"
         done <<< "$keywords"
-    done < <(find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -exec grep -HR '^Keywords=' /dev/null {} + | sed -e '{s/ $//;s/$/;/;s/;;/;/;s/; /;/g}' | tee "$DACTI_KEYWS_INDEX_FILE") | sort | uniq > "$DACTI_KEYWS_CACHE_FILE"
+    done < <(find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -exec grep -HR '^Keywords=' /dev/null {} + | sed -e '{s/ $//;s/$/;/;s/;;/;/;s/; /;/g}' | tee "$DACTI_KEYWS_INDEX_FILE") | sort | uniq 1> "$DACTI_KEYWS_CACHE_FILE"
 }
 
 __dacti_check_args()
@@ -634,10 +634,10 @@ __dacti_status_code()
 
     if (($status_code == 0))
     then
-        printf '%s\n' "$(date +%Y-%m-%d_%H:%M) success ${status_message}" >> "$DACTI_LOG_FILE"
+        printf '%s\n' "$(date +%Y-%m-%d_%H:%M) success ${status_message}" 1>> "$DACTI_LOG_FILE"
     else
         printf '%s\n' "${0##*/}:Status:Error:${status_code}: ${error_message}" 1>&2
-        printf '%s\n' "$(date +%Y-%m-%d_%H:%M) error ${status_message}" >> "$DACTI_LOG_FILE"
+        printf '%s\n' "$(date +%Y-%m-%d_%H:%M) error ${status_message}" 1>> "$DACTI_LOG_FILE"
     fi
 
     exit "$status_code"
@@ -646,7 +646,7 @@ __dacti_status_code()
 __dacti_logger()
 {
     declare log_message=$1
-    printf '%s\n' "$(date +%Y-%m-%d_%H:%M) event ${log_message}" >> "$DACTI_LOG_FILE"
+    printf '%s\n' "$(date +%Y-%m-%d_%H:%M) event ${log_message}" 1>> "$DACTI_LOG_FILE"
 }
 
 # -- MAIN.
@@ -761,7 +761,7 @@ else
 fi
 
 [[ -d $DACTI_DATA_DIR ]] || mkdir -p "$DACTI_DATA_DIR"
-[[ -f $DACTI_APPS_INDEX_FILE ]] || > "$DACTI_APPS_INDEX_FILE"
+[[ -f $DACTI_APPS_INDEX_FILE ]] || 1> "$DACTI_APPS_INDEX_FILE"
 
 [[ $index_applications == index_applications ]] && __dacti_index_applications
 [[ $update_categories == update_categories ]] && __dacti_update_categories

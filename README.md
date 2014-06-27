@@ -1,6 +1,6 @@
 Activate apps in selection menus (run or raise; launch). Works with desktop files. Default is dmenu, but you can use your own (fzf, selecta, tmenu etc.)
 
-```bash
+```
 dacti (-h|-v|) [-C] [-a|-c|-k|-q]
 
     Cli

@@ -5,7 +5,6 @@ TODO:
 - correct my english spelling
 - create readme and insert picture in it
 - give much more comments in the script
-- checking for requiered software; optional dmenu, dmenu2, slmenu, tmenu, fzf, selecta
 - create help()
 - manpage
 - more code structure
@@ -17,3 +16,4 @@ TODO:
 DONE:
 - avoid subshells
   - done in important functions
+- checking for requiered software; optional dmenu, dmenu2, slmenu, tmenu, fzf, selecta

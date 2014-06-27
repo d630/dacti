@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.16" ; }
+__dacti_version() { echo "0.0.9.17" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -44,7 +44,7 @@ __dacti_bin_atime_desc() { find ${PATH//:/ } \( -type f -o -type l \) -printf '%
 
 __dacti_bin_desc() { lsx ${PATH//:/ } | sort -r | uniq ; }
 
-__dacti_menu() { ${menu_cmd} -p "${1:->}" $d_opt $d_screen $d_name $d_class $d_h $d_w $d_x $d_y $d_o $d_dim $d_dc ${d_color[*]} $d_fn ; }
+__dacti_menu() { ${menu_cmd} -p "${1:-${menu_0_prompt}}" $d_opt $d_screen $d_name $d_class $d_h $d_w $d_x $d_y $d_o $d_dim $d_dc ${d_color[*]} $d_fn ; }
 
 __dacti_occur() { grep -e '^.* launch .*$' "$DACTI_LOG_FILE" | cut -d ' ' -f3 | sort | uniq -c | sort -nr ; }
 
@@ -716,7 +716,8 @@ declare -r \
 
 declare -r DACTI_APPS_DIRS=${DACTI_APPS_DIRS:-${xdg_data_dirs}}
 
-declare -r term=${term:-xterm} \
+declare -r menu_0_prompt=${menu_0_prompt:->} \
+           term=${term:-xterm} \
            xdg_applications_home=${xdg_applications_home:-${predir_datadir}/applications}
 
 declare -a xdg_applications=(${DACTI_APPS_DIRS//:/ })
@@ -782,7 +783,8 @@ do
                             [[ $selection =~ (^.* launch .*$) ]] &&
                             __dacti_check_status "${selection#* * }" || continue ;;
         \[occur\])          selection=$(__dacti_occur | __dacti_menu "OCCUR") && __dacti_check_status "${selection#      * }" ;;
+        \[*\])              declare -f __dacti_selection_custom 1>/dev/null 2>&1 && __dacti_selection_custom "${selection//[\[\]]/}" ;;
         "")                 __dacti_status_code 0 "Quit: Nothing has been chosen." ;;
-        *)                  { declare -f __dacti_selection_custom > /dev/null && __dacti_selection_custom "$selection" ; } || __dacti_check_status "$selection" ;;
+        *)                  __dacti_check_status "$selection" ;;
     esac
 done

@@ -16,53 +16,72 @@ d_fn='-fn -*-terminus-medium-*-*-*-14-*-*-*-*-*-iso10646-*'
 
 #term=xterm
 #xdg_applications_home=${HOME}/.local/share/applications
-menu_0=(CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR)
+#menu_0_prompt=">"
 
-#menu_0=(ADDRESSES BIN-ASC BIN-ATIME-ASC BIN-ATIME-DESC BIN-DESC CALC CATEGORIES CLIP FILE KEYWORDS KUNO LOG MARKS OCCUR PW RADIO TASK-ADD WEB WECKER Z)
+menu_0[0]=ADDRESSES
+menu_0[1]=BIN-ASC
+menu_0[2]=BIN-ATIME-ASC
+menu_0[3]=BIN-ATIME-DESC
+menu_0[4]=BIN-DESC
+menu_0[5]=CALC
+menu_0[6]=CATEGORIES
+menu_0[7]=CLIP
+menu_0[8]=FILE
+menu_0[9]=KEYWORDS
+menu_0[10]=KUNO
+menu_0[11]=LOG
+menu_0[12]=MARKS
+menu_0[13]=OCCUR
+menu_0[14]=PW
+menu_0[15]=RADIO
+menu_0[16]=TASK-ADD
+menu_0[17]=WEB
+menu_0[18]=WECKER
+menu_0[19]=Z
 
-#~ __dacti_selection_custom()
-#~ {
-    #~ declare selection=$@
-#~
-    #~ case ${selection,,} in
-        #~ z)
-                #~ spacefm_run_z-list.sh
-                #~ ;;
-        #~ clip)
-                #~ dmenu_clippboard.sh
-                #~ ;;
-        #~ web)
-                #~ firefox_run_url.sh
-                #~ ;;
-        #~ radio)
-                #~ webradio.sh
-                #~ ;;
-        #~ file)
-                #~ dmenu_special_files.sh
-                #~ ;;
-        #~ marks)
-                #~ dmenu_run_marks.sh
-                #~ ;;
-        #~ pw)
-                #~ dmenu_run_pass.sh
-                #~ ;;
-        #~ addresses)
-                #~ ${term} "nottoomuch_wrapper.sh;${SHELL:-"bash"}" 2>/dev/null
-                #~ ;;
-        #~ task-add)
-                #~ ${term} "taskwarrior_add.sh;${SHELL:-"bash"}"
-                #~ ;;
-        #~ kuno)
-                #~ ${term} "kuno.sh;${SHELL:-"bash"}"
-                #~ ;;
-        #~ wecker)
-                #~ ${term} "wecker_gui.sh;${SHELL:-"bash"}"
-                #~ ;;
-        #~ calc)
-                #~ ${term} "calc.sh;${SHELL:-"bash"}"
-                #~ ;;
-        #~ *)
-                #~ return 1
-                #~ ;;
-    #~ esac
-#~ }
+__dacti_selection_custom()
+{
+    declare selection=$@
+
+    case ${selection,,} in
+        z)
+                spacefm_run_z-list.sh
+                ;;
+        clip)
+                dmenu_clippboard.sh
+                ;;
+        web)
+                firefox_run_url.sh
+                ;;
+        radio)
+                webradio.sh
+                ;;
+        file)
+                dmenu_special_files.sh
+                ;;
+        marks)
+                dmenu_run_marks.sh
+                ;;
+        pw)
+                dmenu_run_pass.sh
+                ;;
+        addresses)
+                ${term} "nottoomuch_wrapper.sh;${SHELL:-"bash"}" 2>/dev/null
+                ;;
+        task-add)
+                ${term} "taskwarrior_add.sh;${SHELL:-"bash"}"
+                ;;
+        kuno)
+                ${term} "kuno.sh;${SHELL:-"bash"}"
+                ;;
+        wecker)
+                ${term} "wecker_gui.sh;${SHELL:-"bash"}"
+                ;;
+        calc)
+                ${term} "calc.sh;${SHELL:-"bash"}"
+                ;;
+        *)
+                return 1
+                ;;
+    esac
+}

@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.20" ; }
+__dacti_version() { echo "0.0.9.21" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -602,7 +602,6 @@ __dacti_update_keywords()
             file= \
             keywords=
 
-    find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -exec grep -HR '^Keywords=' /dev/null {} + | sed -e '{s/ $//;s/$/;/;s/;;/;/;s/; /;/g}' | tee "$DACTI_KEYWS_INDEX_FILE" |
     while IFS=':' read -r file keywords
     do
         keywords=${keywords#Keywords=}
@@ -610,7 +609,7 @@ __dacti_update_keywords()
         do
             printf '%s\n' "$REPLY"
         done <<< "$keywords"
-    done | sort | uniq > "$DACTI_KEYWS_CACHE_FILE"
+    done < <(find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -exec grep -HR '^Keywords=' /dev/null {} + | sed -e '{s/ $//;s/$/;/;s/;;/;/;s/; /;/g}' | tee "$DACTI_KEYWS_INDEX_FILE") | sort | uniq > "$DACTI_KEYWS_CACHE_FILE"
 }
 
 __dacti_check_args()

@@ -9,8 +9,11 @@ TODO:
 - create help()
 - manpage
 - more code structure
-- avoid subshells
 - make cleaner conf file
 - optional: messaging with xmessage, notify-send
 - generate category dir hierarchy with own command
 - longterm: tagging and categorizing with own cli commands
+
+DONE:
+- avoid subshells
+  - done in important functions

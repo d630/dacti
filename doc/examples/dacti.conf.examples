@@ -85,3 +85,7 @@ __dacti_selection_custom()
                 ;;
     esac
 }
+
+#__dacti_do_win_sg_custom() { wmctrl -i -a "${xids[0]}" ; }
+
+#__dacti_do_win_pl_custom() { for i in "${xids[@]}" ; do wmctrl -i -a "$i" ; done ; }

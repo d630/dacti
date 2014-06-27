@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.17" ; }
+__dacti_version() { echo "0.0.9.18" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -179,7 +179,7 @@ __dacti_browse_keywords()
             read -r selection < <({ printf '%s\n' '[..]' '[.]' ; while IFS=':' read -r file keywords ; do printf '%s\n' "${file##*/}" ; done < <(egrep -e "^(.*):Keywords=.*${selection};.*$" "$DACTI_KEYWS_INDEX_FILE") ; }| __dacti_menu "$parent")
             case $selection in
                 \[.\])      selection=$parent                                                           ;;
-                \[..\])     read -r selection < <(__dacti_menu "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE") ;;
+                \[..\])     read -r selection < <(__dacti_menu "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")  ;;
                 *)          __dacti_check_status "${selection%.desktop}"                                ;;
             esac
         done
@@ -188,6 +188,10 @@ __dacti_browse_keywords()
 
 __dacti_check_status()
 {
+    __dacti_do_win_sg() { wmctrl -i -a "${xids[0]}" ; }
+
+    __dacti_do_win_pl() { for i in "${xids[@]}" ; do wmctrl -i -a "$i" ; done ; }
+
     __dacti_check_wins()
     {
         declare \
@@ -241,7 +245,12 @@ __dacti_check_status()
                     then
                         eval "${sections[${section_number} X_dacti_win_sg]}"
                     else
-                        wmctrl -i -a "${xids[0]}"
+                        if declare -f __dacti_do_win_sg_custom 1>/dev/null 2>&1
+                        then
+                            __dacti_do_win_sg_custom
+                        else
+                            __dacti_do_win_sg
+                        fi
                     fi
                     ;;
             *)
@@ -249,10 +258,12 @@ __dacti_check_status()
                     then
                         eval "${sections[${section_number} X_dacti_win_pl]}"
                     else
-                        for i in "${xids[@]}"
-                        do
-                            wmctrl -i -a "$i"
-                        done
+                        if declare -f __dacti_do_win_pl_custom 1>/dev/null 2>&1
+                        then
+                            __dacti_do_win_pl_custom
+                        else
+                            __dacti_do_win_pl
+                        fi
                     fi
                     ;;
         esac
@@ -724,6 +735,8 @@ declare -a xdg_applications=(${DACTI_APPS_DIRS//:/ })
 declare -ra xdg_applications=(${xdg_applications[@]/%/\/applications})
 
 declare -a menu_0=(${menu_0[@]:-CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR})
+
+
 
 declare \
         invocation_mode= \

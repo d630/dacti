@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.19" ; }
+__dacti_version() { echo "0.0.9.20" ; }
 
 __dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
 
@@ -566,7 +566,6 @@ __dacti_update_categories()
 
     cd -- "$DACTI_CATS_DATA_DIR" || return 1
 
-    find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -exec grep -HR '^Categories' /dev/null {} + | tee "$DACTI_CATS_INDEX_FILE" |
     while IFS=':' read -r file cats
     do
         cats=${cats#Categories=}
@@ -594,7 +593,7 @@ __dacti_update_categories()
                 ln -f -s "$file" "$i"
             done
         fi
-    done
+    done < <(find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -exec grep -HR '^Categories' /dev/null {} + | tee "$DACTI_CATS_INDEX_FILE")
 }
 
 __dacti_update_keywords()

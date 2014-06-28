@@ -143,7 +143,7 @@ Along with this programm comes an exemplary Conf File. You can set following par
 
 Report it on https://github.com/D630/dacti/issues
 
-## ToDO ##
+## TODO ##
 
 All is work in progress. See file `TODO`, which comes along with this programm.
 

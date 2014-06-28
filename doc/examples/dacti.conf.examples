@@ -1,7 +1,6 @@
 # dacti - example configuration file
 
 term=xterm
-xdg_applications_home=${HOME}/.local/share/applications
 
 menu_0_prompt=">"
 menu_0[0]=ADDRESSES

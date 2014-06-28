@@ -2,7 +2,7 @@
 
 `dacti`(1) is a stupid selection menue driven run or raise bash shell script. It was written to combine the characteristic of application runners with the qualities of structured menu based launchers. Therefore, `dacti`(1) organizes, reads, modifies and creates desktop files aka. "desktop entries", which are standardized by [freedesktop.org](http://standards.freedesktop.org). By default, `dacti`(1) works with `dmenu`(1) and `wmctrl`(1), but you can use your preferred tools ([dmenu2](https://bitbucket.org/melek/dmenu2), [fzf](https://github.com/junegunn/fzf), [selecta](https://github.com/garybernhardt/selecta), [slmenu](https://bitbucket.org/rafaelgg/slmenu), [tmenu](https://github.com/dhamidi/tmenu) etc.).
 
-Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your shell (keyboard driven and without much graphical stuff).
+Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your shell (keyboard driven and without much graphical stuff). You do not have to be a heavy Klickibunti-user of desktop entries. `dacti`(1) simply uses the standard.
 
 ### Features ###
 
@@ -93,22 +93,21 @@ dacti (-h|-v|) [-C] [-a|-c|-k|-q]
 
 ## Enviroment ##
 
-* internal (info):
+* internal (for info only):
     * `xdg_data_dirs`: ${XDG_DATA_DIRS:-"/usr/local/share:/usr/share"}
 
 * modifiable:
 
 | evar  | default val |
 | ------------- | ------------- |
-| DACTI_CONF_FILE | ${XDG_CONFIG_HOME:-"${HOME}/.config"}/dacti/dacti.conf |
-| ACTI_DATA_DIR | ${XDG_DATA_HOME:-"${HOME}/.local/share"}/dacti  |
-| DACTI_CONF_FILE | ${XDG_CONFIG_HOME:-"${HOME}/.config"}/dacti/dacti.conf |
-| DACTI_DATA_DIR | ${XDG_DATA_HOME:-"${HOME}/.local/share"}/dacti |
 | DACTI_APPS_CACHE_FILE | ${DACTI_DATA_DIR}/dacti_applications.cache |
+| DACTI_APPS_DIR_HOME | ${XDG_DATA_HOME:-"${HOME}/.local/share"}/applications |
 | DACTI_APPS_DIRS | $xdg_data_dirs (separat by colon like in `<PATH>`) |
 | DACTI_APPS_INDEX_FILE | ${DACTI_DATA_DIR}/dacti_applications.index |
 | DACTI_CATS_DATA_DIR | ${DACTI_DATA_DIR}/Categories |
 | DACTI_CATS_INDEX_FILE | ${DACTI_DATA_DIR}/dacti_categories.index |
+| DACTI_CONF_FILE | ${XDG_CONFIG_HOME:-"${HOME}/.config"}/dacti/dacti.conf |
+| DACTI_DATA_DIR | ${XDG_DATA_HOME:-"${HOME}/.local/share"}/dacti |
 | DACTI_KEYWS_CACHE_FILE | ${DACTI_DATA_DIR}/dacti_keywords.cache |
 | DACTI_KEYWS_INDEX_FILE | ${DACTI_DATA_DIR}/dacti_keywords.index |
 | DACTI_LOG_FILE | ${DACTI_DATA_DIR}/dacti.log |
@@ -120,7 +119,23 @@ dacti (-h|-v|) [-C] [-a|-c|-k|-q]
 
 ## Configurations ##
 
+Along with this programm comes an exemplary Conf File. You can set following parameters:
+
+* enviroment variables: all, but `<DACTI_CONF_FILE>`
+* normal scalar variables:
+    * `term=<TERM>` (fallback is `xterm`)
+    * `menu_0_prompt=<STRING>` (fallback is `>`)
+* indexed array variables
+    * `menu_0[<INTG>]=<STRING>` fallback is `menu_0=(CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR)`
+* functions:
+    * `__dacti_do_win_pl_custom`: decide, what do to with "${xids[@]}"
+    * `__dacti_do_win_sg_custom`: decide, what to do with "${xids[0]}"
+    * `__dacti_menu_cmd_custom "$menu_prompt"`: specify the menu command list
+    * `__dacti_selection_custom "$selection"`: specify, what to do, if special entries in the main menu has been chosen.
+
 ## Notes ##
+
+* You may write all long name options without masking `--`. Instead of `--help` you may use `help`.
 
 ## BUGS & REQUESTS ##
 

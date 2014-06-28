@@ -97,6 +97,7 @@ dacti (-h|-v|) [-C] [-a|-c|-k|-q]
     * `xdg_data_dirs`: ${XDG_DATA_DIRS:-"/usr/local/share:/usr/share"}
 
 * modifiable
+
 | evar  | default val |
 | ------------- | ------------- |
 | DACTI_CONF_FILE | "${XDG_CONFIG_HOME:-"${HOME}/.config"}/dacti/dacti.conf" |

@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.29" ; }
+__dacti_version() { echo "0.0.9.30" ; }
 
 __dacti_help()
 {
@@ -386,6 +386,7 @@ X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
 X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
 X-dacti_win_sg=" 1>> "${xdg_applications_home}/${selection% *}.desktop"
+        grep -q -e "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" "$DACTI_APPS_INDEX_FILE" || printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" 1>> "$DACTI_APPS_INDEX_FILE"
         __dacti_logger "${selection% *}: An already existed Desktop File has been updated."
         else
             # Create new desktop file with all official keys + dactis own keys.
@@ -824,7 +825,7 @@ declare -a xdg_applications=(${DACTI_APPS_DIRS//:/ })
 declare -ra xdg_applications=(${xdg_applications[@]/%/\/applications})
 declare -r menu_0_prompt=${menu_0_prompt:->} \
            term=${term:-xterm}
-declare -a menu_0=(${menu_0[@]:-CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR})
+declare -a menu_0=(${menu_0[@]:-BIN-ASC BIN-ATIME-ASC BIN-ATIME-DESC BIN-DESC CATEGORIES KEYWORDS LOG OCCUR})
 
 # Declare last variables.
 declare \

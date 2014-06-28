@@ -30,6 +30,15 @@ Required: GNU bash, chmod, comm, cut, [dmenu](http://tools.suckless.org/dmenu/),
 * Get `dacti`(1) with `git clone https://github.com/D630/dacti.git` or download it on https://github.com/D630/dacti/releases
 * Copy the script `dacti` elsewhere into `<PATH>`.
 * Copy the dir `Categories` into `<DACTI_DATA_DIR>` or its contents into `<DACTI_CATS_DATA_DIR>`.
+* Then create a keybind. In `openbox`(1) you could use:
+
+```xml
+<keyboard>
+    <keybind key="W-v">
+        <action name="Execute"><command>dacti</command></action>
+    </keybind>
+</keyboard>
+```
 
 ## Usage ##
 
@@ -91,7 +100,130 @@ dacti (-h|-v|) [-C] [-a|-c|-k|-q]
 
 ## Examples ##
 
-TODO
+### Without indexing ###
+
+Open your terminal up and type `$ dacti` or launch `dacti`(1) with your configured keybinds. Without any configuration in the Conf File you would see the main selection menu, which looks in that case like this:
+
+```
+[BIN-ASC]
+[BIN-ATIME-ASC]
+[BIN-ATIME-DESC]
+[BIN-DESC]
+[CATEGORIES]
+[KEYWORDS]
+[LOG]
+[OCCUR]
+```
+
+Since categories and keywords based on indexed desktop entries, there is no advantage to use them now. If you select `[KEYWORDS]`, you end up in an empty selection menu; if you select `[CATEGORIES]`, you can only browse categories without desktop files. The log file is still beeing empty: `[LOG]` and `[OCCUR]` have nothing to browse.
+
+You can launch (run or raise) an application by browsing one of the BIN-entries or by typing a command. Without any prefixes `dacti`(1) looks for the command in the index file (`<DACTI_APPS_INDEX_FILE>`); because there are still no entries, the application would get the status `reg` and the mode `gui` per default. After launching the application, `dacti`(1) tries to create a new desktop file in `<DACTI_APPS_DIR_HOME>` and to record the application in `<DACTI_APPS_INDEX_FILE>`. If there were already a desktop file, `dacti`(1) updates its content. Let us say, we enter the gui application `spacefm`(1). After launching it `dacti(1)` has been closed. We have then a status like this:
+
+```bash
+$ ls /home/user/.local/share/applications
+defaults.list  mimeapps.list  mimeinfo.cache  spacefm.desktop
+$ cat /home/user/.local/share/applications/spacefm.desktop
+[Desktop Entry]
+Actions=
+Categories=
+Comment=
+DBusActivatable=
+DocPath=
+Exec=spacefm
+GenericName=
+Hidden=
+Icon=
+InitialPreference=
+Keywords=
+MimeType=
+Name=spacefm
+NoDisplay=
+NotShowIn=
+OnlyShowIn=
+Path=
+ServiceTypes=
+StartupNotify=
+StartupWMClass=spacefm
+Terminal=
+TryExec=
+Type=Application
+Version=1.1
+X-dacti_mode=gui
+X-dacti_new_term=
+X-dacti_status=reg
+X-dacti_win_pl=
+X-dacti_win_sg=
+$ cat /home/user/.local/share/dacti/dacti_applications.index
+reg gui spacefm /home/user1/.local/share/applications/spacefm.desktop
+```
+
+Open `dacti`(1) a second time, the main selection menu looks like this:
+
+```
+[BIN-ASC]
+[BIN-ATIME-ASC]
+[BIN-ATIME-DESC]
+[BIN-DESC]
+[CATEGORIES]
+[KEYWORDS]
+[LOG]
+[OCCUR]
+spacefm
+```
+
+Now let us empty the index file to see what is going on, when we start `spacefm`(1) with an existed desktop file for it.
+
+```bash
+$ > /home/user/.local/share/dacti/dacti_applications.index
+$ cat /home/user/.local/share/dacti/dacti_applications.index
+```
+
+After a launch of `spacefm`(1), we end up in a second selection menu, where we need to enter a name for this launcher. We type `spacefm 2`. The desktop file looks now like this:
+
+```bash
+$ cat /home/user/.local/share/applications/spacefm.desktop
+[Desktop Entry]
+Actions=spacefm_11877;
+Categories=
+Comment=
+DBusActivatable=
+DocPath=
+Exec=spacefm
+GenericName=
+Hidden=
+Icon=
+InitialPreference=
+Keywords=
+MimeType=
+Name=spacefm
+NoDisplay=
+NotShowIn=
+OnlyShowIn=
+Path=
+ServiceTypes=
+StartupNotify=
+StartupWMClass=spacefm
+Terminal=
+TryExec=
+Type=Application
+Version=1.1
+X-dacti_mode=gui
+X-dacti_new_term=
+X-dacti_status=reg
+X-dacti_win_pl=
+X-dacti_win_sg=
+
+[Desktop Action spacefm_11877]
+Exec=spacefm
+Name=spacefm 2
+X-dacti_mode=gui
+X-dacti_new_term=
+X-dacti_status=reg
+X-dacti_win_pl=
+X-dacti_win_sg=
+```
+
+We can see, that an application has only one desktop file, but may contain several launcher sections.
 
 ## Enviroment ##
 
@@ -128,7 +260,7 @@ Along with this programm comes an exemplary configuration file. You can set foll
     * `term=<TERM>` (fallback is `xterm`)
     * `menu_0_prompt=<STRING>` (fallback is `>`)
 * indexed array variables
-    * `menu_0[<INTG>]=<STRING>` fallback is `menu_0=(CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR)`
+    * `menu_0[<INTG>]=<STRING>` fallback is `menu_0=(BIN-ASC BIN-ATIME-ASC BIN-ATIME-DESC BIN-DESC CATEGORIES KEYWORDS LOG OCCUR)`
 * functions:
     * `__dacti_do_win_pl_custom`: decide, what do to with `${xids[@]}`.
     * `__dacti_do_win_sg_custom`: decide, what to do with `${xids[0]}`.

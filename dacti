@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.32" ; }
+__dacti_version() { echo "0.0.9.33" ; }
 
 __dacti_help()
 {
@@ -747,10 +747,10 @@ __dacti_status_code()
 
     if (($status_code == 0))
     then
-        printf '%s\n' "$(date +%Y-%m-%d_%H:%M) success ${status_message}" 1>> "$DACTI_LOG_FILE"
+        printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) success ${status_message}" 1>> "$DACTI_LOG_FILE"
     else
         printf '%s\n' "${0##*/}:Status:Error:${status_code}: ${status_message}" 1>&2
-        printf '%s\n' "$(date +%Y-%m-%d_%H:%M) error ${status_message}" 1>> "$DACTI_LOG_FILE"
+        printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) error ${status_message}" 1>> "$DACTI_LOG_FILE"
     fi
 
     exit "$status_code"
@@ -759,7 +759,7 @@ __dacti_status_code()
 __dacti_logger()
 {
     declare log_message=$1
-    printf '%s\n' "$(date +%Y-%m-%d_%H:%M) event ${log_message}" 1>> "$DACTI_LOG_FILE"
+    printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) event ${log_message}" 1>> "$DACTI_LOG_FILE"
 }
 
 # -- MAIN.

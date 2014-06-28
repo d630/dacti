@@ -4,7 +4,7 @@
 
 Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your shell (keyboard driven and without much graphical stuff).
 
-Features:
+### Features ###
 
 * Run or raise applications (based on desktop entries or directly with or without belated recording).
     * Running is dependent on: the invocation mode of `dacti`(1) (cli or gui), the application status (blocked, ignored, regular), the need for a terminal (with or without new terminal instance) and the execute key of the application (optional configured).

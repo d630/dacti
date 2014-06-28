@@ -121,7 +121,7 @@ TODO
 
 ## Configurations ##
 
-Along with this programm comes an exemplary Conf File. You can set following parameters:
+Along with this programm comes an exemplary configuration file. You can set following parameters:
 
 * enviroment variables: all, but `<DACTI_CONF_FILE>`
 * normal scalar variables:

@@ -109,7 +109,7 @@ See file `TUTORIAL.md`.
 
 * modifiable:
 
-| evar  | default val |
+| **evar**  | **default val** |
 | ------------- | ------------- |
 | DACTI_APPS_CACHE_FILE | ${DACTI_DATA_DIR}/dacti_applications.cache |
 | DACTI_APPS_DIR_HOME | ${XDG_DATA_HOME:-"${HOME}/.local/share"}/applications |

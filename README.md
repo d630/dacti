@@ -2,15 +2,9 @@
 
 `dacti`(1) is a stupid selection menue driven run or raise bash shell script. It was written to combine the characteristic of application runners with the qualities of structured menu based launchers. Therefore, `dacti`(1) organizes, reads, modifies and creates desktop files aka. "desktop entries", which are standardized by [freedesktop.org](http://standards.freedesktop.org). By default, `dacti`(1) works with `dmenu`(1) and `wmctrl`(1), but you can use your preferred tools ([dmenu2](https://bitbucket.org/melek/dmenu2), [fzf](https://github.com/junegunn/fzf), [selecta](https://github.com/garybernhardt/selecta), [slmenu](https://bitbucket.org/rafaelgg/slmenu), [tmenu](https://github.com/dhamidi/tmenu) etc.).
 
-<<<<<<< HEAD
-Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your shell (keyboard driven and without much graphical stuff).
-
-Features:
-=======
 Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your shell (keyboard driven and without much graphical stuff). You do not have to be a heavy Klickibunti-user of desktop entries. `dacti`(1) simply uses the standard.
 
 ### Features ###
->>>>>>> 0.1.0.0
 
 * Run or raise applications (based on desktop entries or directly with or without belated recording).
     * Running is dependent on: the invocation mode of `dacti`(1) (cli or gui), the application status (blocked, ignored, regular), the need for a terminal (with or without new terminal instance) and the execute key of the application (optional configured).
@@ -34,13 +28,10 @@ Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your sh
 Required: GNU bash, chmod, comm, cut, [dmenu](http://tools.suckless.org/dmenu/), GNU find, GNU grep, GNU sed, ln, [lsx](http://tools.suckless.org/lsx), mv, pgrep, ps, sort, stat, tee, uniq, [wmctrl](http://tomas.styblo.name/wmctrl/), xprop
 
 * Get `dacti`(1) with `git clone https://github.com/D630/dacti.git` or download it on https://github.com/D630/dacti/releases
-<<<<<<< HEAD
 * Copy the script `dacti` elsewhere into `<PATH>` and the manpage `dacti.1` into `<MANPATH>`.
 * Copy the dir `Categories` into `<DACTI_DATA_DIR>`.
-=======
 * Copy the script `dacti` elsewhere into `<PATH>`.
 * Copy the dir `Categories` into `<DACTI_DATA_DIR>` or its contents into `<DACTI_CATS_DATA_DIR>`.
->>>>>>> 0.1.0.0
 
 ## Usage ##
 
@@ -106,7 +97,6 @@ TODO
 
 ## Enviroment ##
 
-<<<<<<< HEAD
 * internal (info)
     * `xdg_data_dirs`: ${XDG_DATA_DIRS:-"/usr/local/share:/usr/share"}
 
@@ -128,7 +118,6 @@ TODO
 | DACTI_LOG_FILE | "${DACTI_DATA_DIR}/dacti.log" |
 
 * not yet used
-=======
 * internal (for info only):
     * `xdg_data_dirs`: ${XDG_DATA_DIRS:-"/usr/local/share:/usr/share"}
 
@@ -149,14 +138,12 @@ TODO
 | DACTI_LOG_FILE | ${DACTI_DATA_DIR}/dacti.log |
 
 * not yet used:
->>>>>>> 0.1.0.0
     * `DACTI_CATS_MAIN_INFO_FILE`
     * `DACTI_CATS_SUB_INFO_FILE`
     * `DACTI_TMP_DIR`
 
 ## Configurations ##
 
-<<<<<<< HEAD
 ## Notes ##
 
 =======
@@ -178,7 +165,6 @@ Along with this programm comes an exemplary Conf File. You can set following par
 
 * You may write all long name options without masking `--`. Instead of `--help` you may use `help`.
 
->>>>>>> 0.1.0.0
 ## BUGS & REQUESTS ##
 
 Report it on https://github.com/D630/dacti/issues

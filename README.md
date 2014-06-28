@@ -96,7 +96,7 @@ TODO
 ## Enviroment ##
 
 * internal (info)
-    * `xdg_data_dirs`: ${XDG_DATA_DIRS:-"/usr/local/share:/usr/share"}
+    * `xdg_data_dirs`: `${XDG_DATA_DIRS:-"/usr/local/share:/usr/share"}`
 
 * modifiable:
 

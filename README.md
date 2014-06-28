@@ -130,10 +130,10 @@ Along with this programm comes an exemplary Conf File. You can set following par
 * indexed array variables
     * `menu_0[<INTG>]=<STRING>` fallback is `menu_0=(CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR)`
 * functions:
-    * `__dacti_do_win_pl_custom`: decide, what do to with "${xids[@]}".
-    * `__dacti_do_win_sg_custom`: decide, what to do with "${xids[0]}".
-    * `__dacti_menu_cmd_custom "$menu_prompt"`: specify the menu command list.
-    * `__dacti_selection_custom "$selection"`: specify, what to do, if special entries in the main menu has been chosen.
+    * `__dacti_do_win_pl_custom`: decide, what do to with `${xids[@]}`.
+    * `__dacti_do_win_sg_custom`: decide, what to do with `${xids[0]}`.
+    * `__dacti_menu_cmd_custom "${menu_prompt}"`: specify the menu command list.
+    * `__dacti_selection_custom "${selection}"`: specify, what to do, if special entries in the main menu has been chosen.
 
 ## Notes ##
 

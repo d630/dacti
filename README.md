@@ -1,6 +1,6 @@
 # dacti v0.1.0.0 [GNU GPLv3] #
 
-`dacti`(1) is a stupid selection menue driven run or raise bash shell script. It was written to combine the characteristic of application runners with the qualities of structured menu based launchers. Therefore, `dacti`(1) organizes, reads, modifies and creates desktop files aka. "desktop entries", which are standardized by [freedesktop.org](http://standards.freedesktop.org). By default, `dacti`(1) works with `dmenu`(1) and `wmctrl`(1), but you can use your preferred tools ([dmenu2](https://bitbucket.org/melek/dmenu2), [fzf](https://github.com/junegunn/fzf), [selecta](https://github.com/garybernhardt/selecta), [slmenu](https://bitbucket.org/rafaelgg/slmenu), [tmenu](https://github.com/dhamidi/tmenu) etc.).
+`dacti`(1) is a stupid selection menue driven run or raise bash shell script. It was written to combine the characteristic of application runners with the qualities of structured menu based launchers. Therefore, `dacti`(1) organizes, reads, modifies and creates desktop files aka. "desktop entries", which are standardized by [freedesktop.org](http://standards.freedesktop.org). By default, `dacti`(1) works with `dmenu`(1) and `wmctrl`(1), but you can use your preferred tools ([dmenu2](https://bitbucket.org/melek/dmenu2) or [slmenu](https://bitbucket.org/rafaelgg/slmenu)).
 
 Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your shell (keyboard driven and without much graphical stuff). You do not have to be a heavy Klickibunti-user of desktop entries. `dacti`(1) simply uses the standard.
 

@@ -21,7 +21,17 @@ __dacti_menu_cmd_custom()
 
     case $invocation_mode in
         cli)
-                ${HOME}/.local/bin/fzf -i +s --no-mouse -e
+                /usr/local/bin/slmenu -b -f -i \
+                                      -l "10" \
+                                      -p "$menu_prompt" \
+                                      -nb "#2C2C2C" \
+                                      -nf "#DCDCCC" \
+                                      -sb "#DCDCCC" \
+                                      -sf "#2C2C2C" \
+                                      -uc "#2C2C2C" \
+                                      -fn "-*-terminus-medium-*-*-*-14-*-*-*-*-*-iso10646-*" \
+                                      -name "dacti" \
+                                      -class "dacti"
                 ;;
         gui)
                 /usr/local/bin/dmenu2 -b -f -i \
@@ -61,4 +71,12 @@ __dacti_selection_custom()
 
 __dacti_do_win_sg_custom() { wmctrl -i -a "${xids[0]}" ; }
 
-__dacti_do_win_pl_custom() { for i in "${xids[@]}" ; do wmctrl -i -a "$i" ; done ; }
+__dacti_do_win_pl()
+{
+    declare fail=
+
+    for i in "${xids[@]}"
+    do
+        wmctrl -i -a "$i" || { launch_status=fail ; __dacti_logger "Raising: Window ${i} of ${selection% *} has not raised." ; }
+    done
+}

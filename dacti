@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.30" ; }
+__dacti_version() { echo "0.0.9.31" ; }
 
 __dacti_help()
 {
@@ -261,13 +261,22 @@ __dacti_check_status()
 {
     __dacti_do_win_sg() { wmctrl -i -a "${xids[0]}" ; }
 
-    __dacti_do_win_pl() { for i in "${xids[@]}" ; do wmctrl -i -a "$i" ; done ; }
+    __dacti_do_win_pl()
+    {
+        declare fail=
+
+        for i in "${xids[@]}"
+        do
+            wmctrl -i -a "$i" || { launch_status=fail ; __dacti_logger "Raising: Window ${i} of ${selection% *} has not raised." ; }
+        done
+    }
 
     __dacti_check_wins()
     {
         declare \
                 i= \
                 id= \
+                fail= \
                 net_client_list= \
                 net_wm_pid= \
                 pid=
@@ -321,10 +330,11 @@ __dacti_check_status()
                     else
                         if declare -f __dacti_do_win_sg_custom 1>/dev/null 2>&1
                         then
-                            __dacti_do_win_sg_custom
+                            __dacti_do_win_sg_custom || fail=fail
                         else
-                            __dacti_do_win_sg
+                            __dacti_do_win_sg || fail=fail
                         fi
+                        [[ $fail == fail ]] && { launch_status=fail ; __dacti_logger "Raising: Window of ${selection% *} has not raised." ; }
                     fi
                     ;;
             *)
@@ -346,15 +356,21 @@ __dacti_check_status()
     __dacti_exec_selection()
     {
         # Check, if selected command, exists.
-        command -v "${selection% *}" 1>/dev/null 2>&1 || return 1
-        selection=${sections[${section_number} Exec]:-$selection}
-
-        # Check, if selected command needs to have a terminal; relative to the invocation mode and option ":n".
-        if [[ ${sections[${section_number} Terminal]} =~ (1|true|yes) && ( ${sections[${section_number} X_dacti_new_term]} =~ (1|true|yes) || $invocation_mode == gui ) ]]
+        if command -v "${selection% *}" 1>/dev/null 2>&1
         then
-            (exec ${term} -e "$selection;${SHELL:-bash}" 2>/dev/null &)
+            selection=${sections[${section_number} Exec]:-$selection}
+
+            # Check, if selected command needs to have a terminal; relative to the invocation mode and option ":n".
+            if [[ ${sections[${section_number} Terminal]} =~ (1|true|yes) && ( ${sections[${section_number} X_dacti_new_term]} =~ (1|true|yes) || $invocation_mode == gui ) ]]
+            then
+                (exec ${term} -e "$selection;${SHELL:-bash}" 2>/dev/null &)
+            else
+                (exec ${selection} 2>/dev/null &)
+            fi
         else
-            (exec ${selection} 2>/dev/null &)
+            launch_status=fail
+            __dacti_logger "Execution: Command ${selection% *} is unknown."
+            return 1
         fi
     }
 
@@ -381,6 +397,8 @@ __dacti_check_status()
 [Desktop Action ${action_name}]
 Exec=${selection}
 Name=${name:-${selection% *}}
+StartupWMClass=$startup_wmclass
+Terminal=${sections[${section_number} Terminal]}
 X-dacti_mode=${sections[${section_number} X_dacti_mode]}
 X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
 X-dacti_status=${sections[${section_number} X_dacti_status]}
@@ -435,6 +453,7 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
             apps_status= \
             build_new_file= \
             key= \
+            launch_status= \
             mode= \
             new_terminal= \
             pretend= \
@@ -541,11 +560,15 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
         *)          __dacti_status_code 1 "Quit: Status ${status} is unknown."
     esac
 
-    # Create new desktop file, if invoked with ":u" or if there is no entry in the index file.
-    [[ $build_new_file ]] && __dacti_build_new_file
-    printf '%s\n' "$(date +%Y-%m-%d_%H:%M) launch ${selection% *}" 1>> "$DACTI_LOG_FILE"
-
-    __dacti_status_code 0 "Quit: Execution has finished."
+    if [[ $launch_status == fail ]]
+    then
+        __dacti_status_code 1 "Quit: Launch has failed."
+    else
+        # Create new desktop file, if invoked with ":u" or if there is no entry in the index file.
+        [[ $build_new_file ]] && __dacti_build_new_file
+        printf '%s\n' "$(date +%Y-%m-%d_%H:%M) launch ${selection% *}" 1>> "$DACTI_LOG_FILE"
+        __dacti_status_code 0 "Quit: Execution has finished."
+    fi
 }
 
 __dacti_selection_0()

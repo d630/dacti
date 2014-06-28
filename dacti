@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.28" ; }
+__dacti_version() { echo "0.0.9.29" ; }
 
 __dacti_help()
 {
@@ -794,8 +794,7 @@ declare -r DACTI_CONF_FILE=${DACTI_CONF_FILE:-${predir_configdir}/dacti}/dacti.c
 declare -A d_color
 declare \
         menu_0_prompt= \
-        term= \
-        xdg_applications_home=
+        term=
 declare -a menu_0=()
 if [[ -f $DACTI_CONF_FILE ]]
 then
@@ -818,12 +817,13 @@ declare -r \
            DACTI_LOG_FILE=${DACTI_LOG_FILE:-${DACTI_DATA_DIR}/dacti.log} \
            DACTI_TMP_DIR=${DACTI_TMP_DIR:-${TMPDIR:-/tmp}} \
            xdg_data_dirs=${XDG_DATA_DIRS:-/usr/local/share:/usr/share}
-declare -r DACTI_APPS_DIRS=${DACTI_APPS_DIRS:-${xdg_data_dirs}}
+declare -r DACTI_APPS_DIRS=${DACTI_APPS_DIRS:-${xdg_data_dirs}} \
+           DACTI_APPS_DIR_HOME=${DACTI_APPS_DIR_HOME:-${predir_datadir}/applications}
+declare -r xdg_applications_home=$DACTI_APPS_DIR_HOME
 declare -a xdg_applications=(${DACTI_APPS_DIRS//:/ })
 declare -ra xdg_applications=(${xdg_applications[@]/%/\/applications})
 declare -r menu_0_prompt=${menu_0_prompt:->} \
-           term=${term:-xterm} \
-           xdg_applications_home=${xdg_applications_home:-${predir_datadir}/applications}
+           term=${term:-xterm}
 declare -a menu_0=(${menu_0[@]:-CATEGORIES KEYWORDS BIN-ASC BIN-DESC BIN-ATIME-ASC BIN-ATIME-DESC LOG OCCUR})
 
 # Declare last variables.

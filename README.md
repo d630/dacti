@@ -151,4 +151,4 @@ All is work in progress. See file `TODO`, which comes along with this programm.
 
 `dacti`(1) is a rewrite of [acti](https://github.com/D630/acti) (v0.8; GNU GPLv3) by D630.
 
-`dacti`(1) is affected by [dmnenu-launch](https://github.com/Wintervenom/Scripts/blob/master/file/launch/dmenu-launch) (v0.5.7) by Scott Garrett.
+`dacti`(1) is affected by [dmenu-launch](https://github.com/Wintervenom/Scripts/blob/master/file/launch/dmenu-launch) (v0.5.7) by Scott Garrett.

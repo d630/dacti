@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.31" ; }
+__dacti_version() { echo "0.0.9.32" ; }
 
 __dacti_help()
 {
@@ -309,7 +309,7 @@ __dacti_check_status()
                 done
             done
         else
-            # Just search the window id of the application itself ( status=gui).
+            # Just search the window id of the application itself (status=gui).
             for id in ${net_client_list//,/}
             do
                 [[ $(xprop -id "$id" WM_CLASS) =~ ${sections[${section_number} StartupWMClass]:-${selection% *}} ]] &&
@@ -749,7 +749,7 @@ __dacti_status_code()
     then
         printf '%s\n' "$(date +%Y-%m-%d_%H:%M) success ${status_message}" 1>> "$DACTI_LOG_FILE"
     else
-        printf '%s\n' "${0##*/}:Status:Error:${status_code}: ${error_message}" 1>&2
+        printf '%s\n' "${0##*/}:Status:Error:${status_code}: ${status_message}" 1>&2
         printf '%s\n' "$(date +%Y-%m-%d_%H:%M) error ${status_message}" 1>> "$DACTI_LOG_FILE"
     fi
 

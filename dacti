@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.35" ; }
+__dacti_version() { echo "0.0.9.36" ; }
 
 __dacti_help()
 {
@@ -163,6 +163,7 @@ __dacti_browse_keywords()
                     unset -v "search[${key/or/not}]"
                 }
             done
+
             [[ ${operators[and]} ]] &&
             {
                 for key in "${!search[@]}"
@@ -176,6 +177,7 @@ __dacti_browse_keywords()
                     fi
                 done
             }
+
             for key in "${!search[@]}"
             do
                 [[ ! $key =~ ^and* ]] && search[${key/or /}]=1
@@ -192,6 +194,7 @@ __dacti_browse_keywords()
                 }
                 unset -v "search[$key]"
             done
+
             for key in "${!search[@]}"
             do
                 [[ $key =~ [[:blank:]] ]] || unset -v "search[$key]"
@@ -227,6 +230,7 @@ __dacti_browse_keywords()
         # Perform selection menu with an interactive query.
         selection=
         eval query=($(__dacti_menu_cmd "QUERY" <<< ""))
+
         for i in "${query[@]}"
         do
             [[ $i =~ ^(and|not|or)$ ]] && operator=$i && continue
@@ -238,7 +242,9 @@ __dacti_browse_keywords()
                 search[${operator} ${file}]=1
             done < <(egrep -e "^(.*):Keywords=.*${i};.*$" "$DACTI_KEYWS_INDEX_FILE")
         done
+
         __dacti_search_post
+
         selection=$(for key in "${!search[@]}" ; do printf '%s\n' "${key##*/}" ; done | __dacti_menu_cmd "MATCH")
         [[ $selection ]] && __dacti_check_status "${selection%.desktop}"
     else
@@ -409,6 +415,7 @@ X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
 X-dacti_win_sg=" 1>> "${xdg_applications_home}/${selection% *}.desktop"
 
+            # Index file?
             if egrep -q -e "(.*) (.*) ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" "$DACTI_APPS_INDEX_FILE"
             then
                 __dacti_logger "File creation: File has already been indexed."
@@ -452,9 +459,9 @@ X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
 X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
 
-        chmod 755 "${xdg_applications_home}/${selection% *}.desktop"
+            chmod 755 "${xdg_applications_home}/${selection% *}.desktop"
 
-        __dacti_logger "${selection% *}: New Desktop File has been created."
+            __dacti_logger "${selection% *}: New Desktop File has been created."
         fi
     }
 
@@ -529,6 +536,7 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
             [^1])
                     read -r -d ']' section_number <<< "$(for ((i=1 ; i <= ${section_number[@]} ; i++)); do printf '[%s] [%s] [%s] $ %s\n' "$i" "${sections[${i} X_dacti_status]};${sections[${i} X_dacti_mode]};${sections[${i} X_dacti_new_term]}" "${sections[${i} Name]}" "${sections[${i} Exec]}"; done | __dacti_menu_cmd "SELECTION")"
                     section_number=${section_number/\[/}
+
                     [[ ! $section_number ]] &&
                     {
                         read -r -d ']' selec < <(printf '%s\n' '[1] return' "[2] Exec: $ ${selection}" "[3] Set options and exec: $ ${selection}" "[4] Edit command and set options." | __dacti_menu_cmd "SELECTION")
@@ -742,6 +750,7 @@ __dacti_update_keywords()
 __dacti_check_args()
 {
     declare o=
+
     if [[ ! $OPTARG =~ -.+ ]]
     then
         for o
@@ -773,6 +782,7 @@ __dacti_status_code()
 __dacti_logger()
 {
     declare log_message=$1
+
     printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) event ${log_message}" 1>> "$DACTI_LOG_FILE"
 }
 

@@ -1,1 +1,20 @@
+## Install ##
 
+Required: GNU bash, chmod, comm, cut, dmenu[1], GNU find, GNU grep, GNU sed, ln, lsx[2], mv, pgrep, ps, sort, stat, tee, uniq, wmctrl[3], xprop
+
+* Get dacti(1) with "git clone https://github.com/D630/dacti.git" or download it on https://github.com/D630/dacti/releases
+* Copy the script "dacti" elsewhere into <PATH> and "dacti.1" and "dacti-tutorial" into <MANPATH>.
+* Copy the dir "Categories" into <DACTI_DATA_DIR> or its contents into <DACTI_CATS_DATA_DIR>.
+* Then create a keybind. In openbox(1) you could use:
+
+"
+<keyboard>
+    <keybind key="W-v">
+        <action name="Execute"><command>dacti</command></action>
+    </keybind>
+</keyboard>
+"
+
+[1] http://tools.suckless.org/dmenu/
+[2] http://tools.suckless.org/lsx
+[3] http://tomas.styblo.name/wmctrl/

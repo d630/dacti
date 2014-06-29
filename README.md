@@ -28,7 +28,7 @@ Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your sh
 Required: GNU bash, chmod, comm, cut, [dmenu](http://tools.suckless.org/dmenu/), GNU find, GNU grep, GNU sed, ln, [lsx](http://tools.suckless.org/lsx), mv, pgrep, ps, sort, stat, tee, uniq, [wmctrl](http://tomas.styblo.name/wmctrl/), xprop
 
 * Get `dacti`(1) with `git clone https://github.com/D630/dacti.git` or download it on https://github.com/D630/dacti/releases
-* Copy the script `dacti` elsewhere into `<PATH>`.
+* Copy the script `dacti` elsewhere into `<PATH>` and `dacti.1` and `dacti-tutorial` into `<MANPATH>`.
 * Copy the dir `Categories` into `<DACTI_DATA_DIR>` or its contents into `<DACTI_CATS_DATA_DIR>`.
 * Then create a keybind. In `openbox`(1) you could use:
 

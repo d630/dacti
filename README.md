@@ -1,6 +1,6 @@
 # dacti v0.1.0.0 [GNU GPLv3] #
 
-`dacti`(1) is a stupid selection menue driven run or raise bash shell script. It was written to combine the characteristic of application runners with the qualities of structured menu based launchers. Therefore, `dacti`(1) organizes, reads, modifies and creates desktop files aka. "desktop entries", which are standardized by [freedesktop.org](http://standards.freedesktop.org). By default, `dacti`(1) works with `dmenu`(1) and `wmctrl`(1), but you can use your preferred tools ([dmenu2](https://bitbucket.org/melek/dmenu2) or [slmenu](https://bitbucket.org/rafaelgg/slmenu)).
+`dacti`(1) is a stupid selection menu driven run or raise bash shell script. It was written to combine the characteristic of application runners with the qualities of structured menu based launchers. Therefore, `dacti`(1) organizes, reads, modifies and creates desktop files aka. "desktop entries", which are standardized by [freedesktop.org](http://standards.freedesktop.org). By default, `dacti`(1) works with `dmenu`(1) and `wmctrl`(1), but you can use your preferred tools ([dmenu2](https://bitbucket.org/melek/dmenu2) or [slmenu](https://bitbucket.org/rafaelgg/slmenu)).
 
 Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your shell (keyboard driven and without much graphical stuff). You do not have to be a heavy Klickibunti-user of desktop entries. `dacti`(1) simply uses the standard.
 
@@ -16,7 +16,7 @@ Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your sh
     * `X-dacti_win_pl=LIST`
     * `X-dacti_win_sg=LIST`
 * Browse all binaries (`<PATH>`) in ascending or descending order by its names or access times. Then run or raise them.
-* Index and brows all desktop entries with a category key in hierarchical order. Then run or raise those desktop entries.
+* Index and browse all desktop entries with a category key in hierarchical order. Then run or raise those desktop entries.
 * Index, browse or query (regextype: posix-egrep) all desktop entries with a keywords key. Run or raise associated desktop entries.
 * Browse all log entries of `dacti`(1). Run or raise entries with an "launch event".
 * Browse all launches by application occurence (based on logfile).
@@ -28,7 +28,7 @@ Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your sh
 Required: GNU bash, chmod, comm, cut, [dmenu](http://tools.suckless.org/dmenu/), GNU find, GNU grep, GNU sed, ln, [lsx](http://tools.suckless.org/lsx), mv, pgrep, ps, sort, stat, tee, uniq, [wmctrl](http://tomas.styblo.name/wmctrl/), xprop
 
 * Get `dacti`(1) with `git clone https://github.com/D630/dacti.git` or download it on https://github.com/D630/dacti/releases
-* Copy the script `dacti` elsewhere into `<PATH>` and `dacti.1` and `dacti-tutorial` into `<MANPATH>`.
+* Copy the script `dacti` elsewhere into `<PATH>` and `dacti.1` and `dacti-tutorial.5` into `<MANPATH>`.
 * Copy the dir `Categories` into `<DACTI_DATA_DIR>` or its contents into `<DACTI_CATS_DATA_DIR>`.
 * Then create a keybind. In `openbox`(1) you could use:
 
@@ -160,4 +160,4 @@ All is work in progress. See file `TODO`, which comes along with this programm.
 
 `dacti`(1) is a rewrite of [acti](https://github.com/D630/acti) (v0.8; GNU GPLv3) by D630.
 
-`dacti`(1) is affected by [dmenu-launch](https://github.com/Wintervenom/Scripts/blob/master/file/launch/dmenu-launch) (v0.5.7) by Scott Garrett.
+`dacti`(1) is affected by Scott Garretts [dmenu-launch](https://github.com/Wintervenom/Scripts/blob/master/file/launch/dmenu-launch) (v0.5.7).

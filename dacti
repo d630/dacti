@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.33" ; }
+__dacti_version() { echo "0.0.9.34" ; }
 
 __dacti_help()
 {
@@ -385,7 +385,8 @@ __dacti_check_status()
         if [[ -f ${xdg_applications_home}/${selection% *}.desktop ]]
         then
             # If a desktop file has already been created in "${xdg_applications_home}", then its desktop file needs to be updated. We insert then a new application section/group.
-            name=$(__dacti_menu_cmd "Enter a name" <<< "${selection% *}")
+            name=$(__dacti_menu_cmd "(A) or (N) ${selection}" <<< "${selection% *}")
+            [[ ! $name ]] && { __dacti_logger "File creation: aborted." ; return 1 ; }
             action_name=${selection% *}_${RANDOM}
             while IFS='=' read -r key val
             do
@@ -566,7 +567,7 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
     else
         # Create new desktop file, if invoked with ":u" or if there is no entry in the index file.
         [[ $build_new_file ]] && __dacti_build_new_file
-        printf '%s\n' "$(date +%Y-%m-%d_%H:%M) launch ${selection% *}" 1>> "$DACTI_LOG_FILE"
+        printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) launch ${selection% *}" 1>> "$DACTI_LOG_FILE"
         __dacti_status_code 0 "Quit: Execution has finished."
     fi
 }
@@ -586,7 +587,7 @@ __dacti_selection_0()
         do
             [[ $apps_status != block ]] && printf '%s\n' "$apps_app"
         done < "$DACTI_APPS_INDEX_FILE"
-    } | sort
+    } | sort | uniq
 }
 
 __dacti_comm_array()

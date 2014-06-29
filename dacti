@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.34" ; }
+__dacti_version() { echo "0.0.9.35" ; }
 
 __dacti_help()
 {
@@ -387,13 +387,16 @@ __dacti_check_status()
             # If a desktop file has already been created in "${xdg_applications_home}", then its desktop file needs to be updated. We insert then a new application section/group.
             name=$(__dacti_menu_cmd "(A) or (N) ${selection}" <<< "${selection% *}")
             [[ ! $name ]] && { __dacti_logger "File creation: aborted." ; return 1 ; }
+
             action_name=${selection% *}_${RANDOM}
             while IFS='=' read -r key val
             do
                 [[ $key == Actions ]] && Actions=$val && break
             done < "${xdg_applications_home}/${selection% *}.desktop"
             Actions=${Actions:+${Actions%%;}\;}${action_name}\;
+
             sed -i -e "s/^\(Actions=\).*$/\1${Actions}/" "${xdg_applications_home}/${selection% *}.desktop"
+
             printf '%s\n' "
 [Desktop Action ${action_name}]
 Exec=${selection}
@@ -405,11 +408,19 @@ X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
 X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
 X-dacti_win_sg=" 1>> "${xdg_applications_home}/${selection% *}.desktop"
-        grep -q -e "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" "$DACTI_APPS_INDEX_FILE" || printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" 1>> "$DACTI_APPS_INDEX_FILE"
-        __dacti_logger "${selection% *}: An already existed Desktop File has been updated."
+
+            if egrep -q -e "(.*) (.*) ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" "$DACTI_APPS_INDEX_FILE"
+            then
+                __dacti_logger "File creation: File has already been indexed."
+            else
+                printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" 1>> "$DACTI_APPS_INDEX_FILE"
+            fi
+
+            __dacti_logger "${selection% *}: An already existed Desktop File has been updated."
         else
             # Create new desktop file with all official keys + dactis own keys.
             printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" 1>> "$DACTI_APPS_INDEX_FILE"
+
             printf '%s\n' "[Desktop Entry]
 Actions=
 Categories=
@@ -440,7 +451,9 @@ X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
 X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
 X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
+
         chmod 755 "${xdg_applications_home}/${selection% *}.desktop"
+
         __dacti_logger "${selection% *}: New Desktop File has been created."
         fi
     }
@@ -514,7 +527,7 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
                     build_new_file=build_new_file
                     ;;
             [^1])
-                    read -r -d ']' section_number <<< "$(for ((i=1 ; i <= ${section_number[@]} ; i++)); do printf '[%s] %s: $ %s\n' "$i" "${sections[${i} Name]}" "${sections[${i} Exec]}"; done | __dacti_menu_cmd "SELECTION")"
+                    read -r -d ']' section_number <<< "$(for ((i=1 ; i <= ${section_number[@]} ; i++)); do printf '[%s] [%s] [%s] $ %s\n' "$i" "${sections[${i} X_dacti_status]};${sections[${i} X_dacti_mode]};${sections[${i} X_dacti_new_term]}" "${sections[${i} Name]}" "${sections[${i} Exec]}"; done | __dacti_menu_cmd "SELECTION")"
                     section_number=${section_number/\[/}
                     [[ ! $section_number ]] &&
                     {

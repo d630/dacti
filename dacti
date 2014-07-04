@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.38" ; }
+__dacti_version() { echo "0.0.9.39" ; }
 
 __dacti_help()
 {
@@ -393,7 +393,7 @@ __dacti_check_status()
         if [[ -f ${xdg_applications_home}/${selection% *}.desktop ]]
         then
             # If a desktop file has already been created in "${xdg_applications_home}", then its desktop file needs to be updated. We insert then a new application section/group.
-            name=$(__dacti_menu_cmd "(A) or (N) ${selection}" <<< "${selection% *}")
+            name=$(__dacti_menu_cmd "Give a name" <<< "${selection% *}")
             [[ ! $name ]] && { __dacti_logger "File creation: aborted." ; return 1 ; }
 
             action_name=${selection% *}_${RANDOM}

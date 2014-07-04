@@ -145,14 +145,14 @@ See file [TUT.md](../master/doc/TUT.md)
 
 ### Configurations
 
-Along with this programm comes an exemplary configuration file. You can set following parameters:
+Along with this programm comes an exemplary [configuration file](../master/doc/examples/dacti.conf.examples). You can set following parameters:
 
 * enviroment variables: all, but `<DACTI_CONF_FILE>`
 * normal scalar variables:
-    * `term=<TERM>` (fallback is `xterm`)
-    * `menu_0_prompt=<STRING>` (fallback is `>`)
+    * `term=<TERM>` (fallback is `xterm`): your terminal.
+    * `menu_0_prompt=<STRING>` (fallback is `>`): the default prompt.
 * indexed array variables
-    * `menu_0[<INTG>]=<STRING>` fallback is `menu_0=(BIN-ASC BIN-ATIME-ASC BIN-ATIME-DESC BIN-DESC CATEGORIES KEYWORDS LOG OCCUR)`
+    * `menu_0[<INTG>]=<STRING>` (fallback is `menu_0=(BIN-ASC BIN-ATIME-ASC BIN-ATIME-DESC BIN-DESC CATEGORIES KEYWORDS LOG OCCUR)`): specify special entries in the main selection menu.
 * functions:
     * `__dacti_do_win_pl_custom`: decide, what do to with `${xids[@]}`.
     * `__dacti_do_win_sg_custom`: decide, what to do with `${xids[0]}`.

@@ -5,10 +5,10 @@ TODO:
 - correct my english spelling
 - insert picture
 - manpages
-- tutorial
 - optional: messaging with xmessage, notify-send
 - generate category dir hierarchy with own command
 - longterm: tagging and categorizing with own cli commands
+- options for -k and -c: system, local, all
 
 DONE:
 - avoid subshells
@@ -19,3 +19,4 @@ DONE:
 - create help()
 - create readme
 - give command line option to blank indexing and desktop file creation (like :p)
+- tutorial

@@ -2,11 +2,11 @@
 
 ## Index
 
-1. [Default behavior](##Default behavior)
-2. [Modify launching in the input field](##Modify launching in the input field)
-3. [Handling multiple entries in a desktop file](##Handling multiple entries in a desktop file)
-4. [Index all desktop entries](##Index all desktop entries)
-5. [Result](##Result)
+1. [Default behavior](#Default behavior)
+2. [Modify launching in the input field](#Modify launching in the input field)
+3. [Handling multiple entries in a desktop file](#Handling multiple entries in a desktop file)
+4. [Index all desktop entries](#Index all desktop entries)
+5. [Result](#Result)
 
 ## Default behavior
 

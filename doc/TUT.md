@@ -5,7 +5,7 @@
 Open your terminal up and type `dacti` or launch `dacti`(1) with your configured keybind. Without any configuration in the conf file, you would see the main selection menu, which looks in that case like this:
 
 ```
-[BIN-ASC]1
+[BIN-ASC]
 [BIN-ATIME-ASC]
 [BIN-ATIME-DESC]
 [BIN-DESC]
@@ -13,8 +13,8 @@ Open your terminal up and type `dacti` or launch `dacti`(1) with your configured
 [KEYWORDS]
 [LOG]
 [OCCUR]
-
 ```
+
 Since categories and keywords based on indexed desktop entries, there is no advantage to use them now. If you select `[KEYWORDS]`, you end up in an empty selection menu; if you select `[CATEGORIES]`, you can only browse categories without desktop files. The log file is still beeing empty: `[LOG]` and `[OCCUR]` have nothing to browse.
 
 You can launch (run or raise) an application by browsing one of the BIN-entries or by typing a command. Without any prefixes `dacti`(1) looks for the command in the index file (`<DACTI_APPS_INDEX_FILE>`); since there are still no entries, the application would get the status `reg` and the mode `gui` per default. After launching the application, `dacti`(1) tries to create a new desktop file in `<DACTI_APPS_DIR_HOME>` and to record the application in `<DACTI_APPS_INDEX_FILE>`. Let us say, we enter the gui application `spacefm`(1) (but no instance of it is running):
@@ -176,7 +176,7 @@ And to declare, that an application should start in a new terminal instance `:n`
 
 ### Handling multiple entries in a desktop file  ###
 
-Once a application has been indexed, `dacti`(1) always launches it with the settings in the desktop file. When the desktop entry has more than one section and you try to launch the application, then yet anthoher selection menu appears. It is a list of all entries with some information about the settings. You can select an entry or abort it with `Escape`. By aport, you finally end up in a third selection menu with these entries:
+Once an application has been indexed, `dacti`(1) always launches it with the settings in the desktop file. When the desktop entry has more than one section and you try to launch the application, then yet anthoher selection menu appears. It is a list of all entries with some information about the settings. You can select an entry or abort it with `Escape`. By aport, you finally end up in a third selection menu with these entries:
 
 ```bash
 [1] return
@@ -252,7 +252,7 @@ zip not tar
 
 * index all desktop files on your system, create new one or modify the existing
 * only use local desktop files
-* always use the `:p` command and do not use desktop files at all; use `dacti`(1) as simple launcher without managing
+* always use the `:p` or `--pretend` command and do not use desktop files at all; use `dacti`(1) as simple launcher without managing
 
 Since all desktop files are plain text files, you can modify all keys and launching options like you want.
 

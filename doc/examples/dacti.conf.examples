@@ -1,7 +1,9 @@
-# dacti - example configuration file
+# dacti - EXAMPLE configuration file
 
+# Your terminal.
 term=xterm
 
+# Customize special entries in the main selection menu.
 menu_0_prompt=">"
 menu_0[0]=ADDRESSES
 menu_0[1]=BIN-ASC
@@ -15,6 +17,7 @@ menu_0[8]=OCCUR
 menu_0[9]=PW
 menu_0[10]=Z
 
+# Customize your prefered menu selection programme.
 __dacti_menu_cmd_custom()
 {
     declare menu_prompt=$1
@@ -46,19 +49,20 @@ __dacti_menu_cmd_custom()
     esac
 }
 
+
+# Customize here the targets of the special entries in the main selection menu.
 __dacti_selection_custom()
 {
     declare selection=$@
 
     case ${selection,,} in
         z)
-                spacefm_run_z-list.sh
-                ;;
-        pw)
-                dmenu_run_pass.sh
+                # https://github.com/D630/gist-bin-pub/tree/master/z-fm
+                z-fm.sh
                 ;;
         addresses)
-                ${term} -e "nottoomuch_wrapper.sh;${SHELL:-"bash"}" 2>/dev/null
+                # https://github.com/D630/gist-bin-pub/tree/master/nottoomuch-wrapper
+                ${term} -e "nottoomuch-wrapper.sh;${SHELL:-"bash"}" 2>/dev/null
                 ;;
         *)
                 return 1
@@ -66,8 +70,12 @@ __dacti_selection_custom()
     esac
 }
 
+# Customize the default window raising action. Any relatet entries in the desktop file overwrights these defaults.
+
+# Single window.
 __dacti_do_win_sg_custom() { wmctrl -i -a "${xids[0]}" ; }
 
+# More than one window.
 __dacti_do_win_pl()
 {
     declare fail=

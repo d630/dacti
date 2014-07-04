@@ -9,7 +9,6 @@ TODO:
 - optional: messaging with xmessage, notify-send
 - generate category dir hierarchy with own command
 - longterm: tagging and categorizing with own cli commands
-- give command line option to blank indexing and desktop file creation (like :p)
 
 DONE:
 - avoid subshells
@@ -19,3 +18,4 @@ DONE:
 - make cleaner conf file
 - create help()
 - create readme
+- give command line option to blank indexing and desktop file creation (like :p)

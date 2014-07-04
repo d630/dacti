@@ -126,17 +126,17 @@ See file [TUT.md](../master/doc/TUT.md)
 
 | **evar**  | **default val** |
 | ------------- | ------------- |
-| DACTI_APPS_CACHE_FILE | ${DACTI_DATA_DIR}/dacti_applications.cache |
-| DACTI_APPS_DIR_HOME | ${XDG_DATA_HOME:-"${HOME}/.local/share"}/applications |
-| DACTI_APPS_DIRS | $xdg_data_dirs (separat by colon like in `<PATH>`) |
-| DACTI_APPS_INDEX_FILE | ${DACTI_DATA_DIR}/dacti_applications.index |
-| DACTI_CATS_DATA_DIR | ${DACTI_DATA_DIR}/Categories |
-| DACTI_CATS_INDEX_FILE | ${DACTI_DATA_DIR}/dacti_categories.index |
-| DACTI_CONF_FILE | ${XDG_CONFIG_HOME:-"${HOME}/.config"}/dacti/dacti.conf |
-| DACTI_DATA_DIR | ${XDG_DATA_HOME:-"${HOME}/.local/share"}/dacti |
-| DACTI_KEYWS_CACHE_FILE | ${DACTI_DATA_DIR}/dacti_keywords.cache |
-| DACTI_KEYWS_INDEX_FILE | ${DACTI_DATA_DIR}/dacti_keywords.index |
-| DACTI_LOG_FILE | ${DACTI_DATA_DIR}/dacti.log |
+| `DACTI_APPS_CACHE_FILE` | `${DACTI_DATA_DIR}/dacti_applications.cache` |
+| `DACTI_APPS_DIR_HOME` | `${XDG_DATA_HOME:-"${HOME}/.local/share"}/applications` |
+| `DACTI_APPS_DIRS` | `$xdg_data_dirs` (separat by colon like in `<PATH>`) |
+| `DACTI_APPS_INDEX_FILE` | `${DACTI_DATA_DIR}/dacti_applications.index` |
+| `DACTI_CATS_DATA_DIR` | `${DACTI_DATA_DIR}/Categories` |
+| `DACTI_CATS_INDEX_FILE` | `${DACTI_DATA_DIR}/dacti_categories.index` |
+| `DACTI_CONF_FILE` | `${XDG_CONFIG_HOME:-"${HOME}/.config"}/dacti/dacti.conf` |
+| `DACTI_DATA_DIR` | `${XDG_DATA_HOME:-"${HOME}/.local/share"}/dacti` |
+| `DACTI_KEYWS_CACHE_FILE` | `${DACTI_DATA_DIR}/dacti_keywords.cache` |
+| `DACTI_KEYWS_INDEX_FILE` | `${DACTI_DATA_DIR}/dacti_keywords.index` |
+| `DACTI_LOG_FILE` | `${DACTI_DATA_DIR}/dacti.log` |
 
 * not yet used:
     * `DACTI_CATS_MAIN_INFO_FILE`

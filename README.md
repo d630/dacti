@@ -113,7 +113,7 @@ dacti (-h|-v|) [-C] [-a|-c|-k|-q]
 
 ## Examples
 
-See file [TUT.md](../blob/master/doc/TUT.md)
+See file [TUT.md](../master/doc/TUT.md)
 
 ## Enviroment
 
@@ -167,7 +167,7 @@ Report it on https://github.com/D630/dacti/issues
 
 ## TODO
 
-All is work in progress. See file [TODO](../blob/master/doc/TODO), which comes along with this programm.
+All is work in progress. See file [TODO](../master/doc/TODO), which comes along with this programm.
 
 ## Credits
 

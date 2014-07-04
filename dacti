@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.0.9.36" ; }
+__dacti_version() { echo "0.0.9.37" ; }
 
 __dacti_help()
 {
@@ -51,14 +51,6 @@ __dacti_help()
       -v,  --version
 
     Main selection menu
-      [KEYWORDS]                 Browse keywords in a selection menu and
-                                 select associated desktop files.
-        :u [KEYWORDS]            Update the keyword index before.
-        :q [KEYWORDS]            Invoke a query menu and look for desktop
-                                 files.
-      [CATEGORIES]               Browse all categories in a selection menu
-                                 and select associated desktop files.
-        :u [CATEGORIES]          Update the category index before.
       [BIN-ASC]                  Browse all binaries inside the enviroment
                                  variable <PATH> in a selection menu. Sort
                                  them in ascending order by its names.
@@ -72,6 +64,14 @@ __dacti_help()
                                  variable <PATH> in a selection menu. Sort
                                  them in descending order by its access
                                  time.
+      [CATEGORIES]               Browse all categories in a selection menu
+                                 and select associated desktop files.
+        :u [CATEGORIES]          Update the category index before.
+      [KEYWORDS]                 Browse keywords in a selection menu and
+                                 select associated desktop files.
+        :u [KEYWORDS]            Update the keyword index before.
+        :q [KEYWORDS]            Invoke a query menu and look for desktop
+                                 files.
       [LOG]                      Browse all log entries of dacti in a
                                  selection menu. Start applications from
                                  it by selecting

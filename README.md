@@ -1,10 +1,10 @@
-# dacti v0.1.0.0 [GNU GPLv3] #
+# dacti v0.1.0.0 [GNU GPLv3]
 
 `dacti`(1) is a stupid selection menu driven run or raise bash shell script. It was written to combine the characteristic of application runners with the qualities of structured menu based launchers. Therefore, `dacti`(1) organizes, reads, modifies and creates desktop files aka. "desktop entries", which are standardized by [freedesktop.org](http://standards.freedesktop.org). By default, `dacti`(1) works with `dmenu`(1) and `wmctrl`(1), but you can use your preferred tools ([dmenu2](https://bitbucket.org/melek/dmenu2) or [slmenu](https://bitbucket.org/rafaelgg/slmenu)).
 
 Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your shell (keyboard driven and without much graphical stuff). You do not have to be a heavy Klickibunti-user of desktop entries. `dacti`(1) simply uses the standard.
 
-### Features ###
+### Features
 
 * Run or raise applications (based on desktop entries or directly with or without belated recording).
     * Running is dependent on: the invocation mode of `dacti`(1) (cli or gui), the application status (blocked, ignored, regular), the need for a terminal (with or without new terminal instance) and the execute key of the application (optional configured).
@@ -23,7 +23,7 @@ Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your sh
 * Modify the main selection menu and insert special "first class entries", preferably with other menu based scripts (`dacti`(1) becomes a launching pad).
 * Use a configuration file and declare your selection menu launchers, your specific entries and the default raise command list.
 
-## Install ##
+## Install
 
 Required: GNU bash, chmod, comm, cut, [dmenu](http://tools.suckless.org/dmenu/), GNU find, GNU grep, GNU sed, ln, [lsx](http://tools.suckless.org/lsx), mv, pgrep, ps, sort, stat, tee, uniq, [wmctrl](http://tomas.styblo.name/wmctrl/), xprop
 
@@ -40,7 +40,7 @@ Required: GNU bash, chmod, comm, cut, [dmenu](http://tools.suckless.org/dmenu/),
 </keyboard>
 ```
 
-## Usage ##
+## Usage
 
 ```
 dacti (-h|-v|) [-C] [-a|-c|-k|-q]
@@ -98,11 +98,11 @@ dacti (-h|-v|) [-C] [-a|-c|-k|-q]
                                  entry.
 ```
 
-## Examples ##
+## Examples
 
 See file `TUTORIAL.md`.
 
-## Enviroment ##
+## Enviroment
 
 * internal (info)
     * `xdg_data_dirs`: `${XDG_DATA_DIRS:-"/usr/local/share:/usr/share"}`
@@ -128,7 +128,7 @@ See file `TUTORIAL.md`.
     * `DACTI_CATS_SUB_INFO_FILE`
     * `DACTI_TMP_DIR`
 
-## Configurations ##
+## Configurations
 
 Along with this programm comes an exemplary configuration file. You can set following parameters:
 
@@ -144,19 +144,19 @@ Along with this programm comes an exemplary configuration file. You can set foll
     * `__dacti_menu_cmd_custom "${menu_prompt}"`: specify the menu command list.
     * `__dacti_selection_custom "${selection}"`: specify, what to do, if special entries in the main menu has been chosen.
 
-## Notes ##
+## Notes
 
 * You may write all long name options without masking `--`. Instead of `--help` you may use `help`.
 
-## BUGS & REQUESTS ##
+## BUGS & REQUESTS
 
 Report it on https://github.com/D630/dacti/issues
 
-## TODO ##
+## TODO
 
 All is work in progress. See file `TODO`, which comes along with this programm.
 
-## Credits ##
+## Credits
 
 `dacti`(1) is a rewrite of [acti](https://github.com/D630/acti) (v0.8; GNU GPLv3) by D630.
 

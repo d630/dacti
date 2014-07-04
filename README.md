@@ -64,6 +64,8 @@ dacti (-h|-v|) [-C] [-a|-c|-k|-q]
       -c,  --update-categories   Index all categories.
       -h,  --help
       -k,  --update-keywords     Index all keywords.
+      -p,  --pretend             Like ":p". Pretend indexing and building
+                                 of desktop files.
       -q,  --quit                Quit before performing the main
                                  selection menu.
       -v,  --version

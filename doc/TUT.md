@@ -1,6 +1,14 @@
-## A little tutorial to learn using dacti ##
+# A little tutorial to learn using dacti
 
-### Default behavior ###
+## Index
+
+1. [Default behavior](##Default behavior)
+2. [Modify launching in the input field](##Modify launching in the input field)
+3. [Handling multiple entries in a desktop file](##Handling multiple entries in a desktop file)
+4. [Index all desktop entries](##Index all desktop entries)
+5. [Result](##Result)
+
+## Default behavior
 
 Open your terminal up and type `dacti` or launch `dacti`(1) with your configured keybind. Without any configuration in the conf file, you would see the main selection menu, which looks in that case like this:
 
@@ -142,7 +150,7 @@ X-dacti_win_sg=
 
 If there were already a desktop file but no index entry, `dacti`(1) would update its content. An application has only one desktop file, but may contain several launcher sections. Therefore, any desktop file is recorded once only in the index. The application entries in the main selection menu are based on the index file; you can treat them as bookmarks or clickable desktop icons on a Windows desktop.
 
-### Modify launching in the input field ###
+## Modify launching in the input field
 
 As mentioned before, any non-indexed application gets the mode `gui` and the status `reg`. We can modify that with prefixes (or you use an editor to modify the desktop files). When we want to launch a cli or tui application, we use `:c` for `cli` or `:t` for `tui`. Both commands bring `dacti`(1) to launch the application in a terminal:
 
@@ -174,7 +182,7 @@ And to declare, that an application should start in a new terminal instance `:n`
 :tn elinks
 ```
 
-### Handling multiple entries in a desktop file  ###
+## Handling multiple entries in a desktop file
 
 Once an application has been indexed, `dacti`(1) always launches it with the settings in the desktop file. When the desktop entry has more than one section and you try to launch the application, then yet anthoher selection menu appears. It is a list of all entries with some information about the settings. You can select an entry or abort it with `Escape`. By aport, you finally end up in a third selection menu with these entries:
 
@@ -197,7 +205,7 @@ Moreover, you can use the command `:p` (`pretend`) or invocation of `dacti`(1) w
 :cpi task newest
 ```
 
-###  Index all desktop entries  ###
+## Index all desktop entries
 
 Up to this point, `dacti`(1) only indexes applications after their launches (not using `:p`). Besides, `dacti`(1) only reads and writes files in `<DACTI_APPS_DIR_HOME>` (usually `${HOME}/.local/share/applications`). When you invoke `dacti`(1) with its options all desktop entries in `<DACTI_APPS_DIRS>` will be used; you can configure this enviroment variable, by default it references `/usr/local/share` and `/usr/share`. To scan all desktop entries and index them in the index application file, you need to use:
 
@@ -246,7 +254,7 @@ tar and zip
 zip not tar
 ```
 
-### Result ###
+## Result
 
 `dacti`(1) is a simple `menu` driven bash shell script with interactive usage. You can use it in different ways:
 

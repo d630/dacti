@@ -23,6 +23,19 @@ Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your sh
 * Modify the main selection menu and insert special "first class entries", preferably with other menu based scripts (`dacti`(1) becomes a launching pad).
 * Use a configuration file and declare your selection menu launchers, your specific entries and the default raise command list.
 
+
+## Index
+
+1. [Install](#install)
+2. [Usage](#usage)
+3. [Examples](#examples)
+4. [Enviroment](#enviroment)
+5. [Configurations](#configurations)
+6. [Notes](#notes)
+7. [BUGS & REQUESTS](#bugs--requests)
+8. [TODO](#todo)
+9. [CREDITS](#credits)
+
 ## Install
 
 Required: GNU bash, chmod, comm, cut, [dmenu](http://tools.suckless.org/dmenu/), GNU find, GNU grep, GNU sed, ln, [lsx](http://tools.suckless.org/lsx), mv, pgrep, ps, sort, stat, tee, uniq, [wmctrl](http://tomas.styblo.name/wmctrl/), xprop

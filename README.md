@@ -1,28 +1,27 @@
 ## dacti v0.1.0.0 [GNU GPLv3]
 
-`dacti`(1) is a stupid selection menu driven run or raise bash shell script. It was written to combine the characteristic of application runners with the qualities of structured menu based launchers. Therefore, `dacti`(1) organizes, reads, modifies and creates desktop files aka. "desktop entries", which are standardized by [freedesktop.org](http://standards.freedesktop.org). By default, `dacti`(1) works with `dmenu`(1) and `wmctrl`(1), but you can use your preferred tools ([dmenu2](https://bitbucket.org/melek/dmenu2) or [slmenu](https://bitbucket.org/rafaelgg/slmenu)).
+`dacti`(1) is a stupid selection menu driven run or raise bash shell script. It was written to combine the characteristic of application runners with the quality of structured menu based launchers. Therefore, `dacti`(1) organizes, reads, modifies and creates desktop files aka. "desktop entries", which are standardized by [freedesktop.org](http://standards.freedesktop.org). By default, `dacti`(1) works with `dmenu`(1) and `wmctrl`(1), but you can use your preferred tools ([dmenu2](https://bitbucket.org/melek/dmenu2) or [slmenu](https://bitbucket.org/rafaelgg/slmenu)).
 
 Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your shell (keyboard driven and without much graphical stuff). You do not have to be a heavy Klickibunti-user of desktop entries. `dacti`(1) simply uses the standard.
 
 #### Features
 
-* Run or raise applications (based on desktop entries or directly with or without belated recording).
-    * Running is dependent on: the invocation mode of `dacti`(1) (cli or gui), the application status (blocked, ignored, regular), the need for a terminal (with or without new terminal instance) and the execute key of the application (optional configured).
-    * Raising is dependent on: the application status (blocked, ignored, regular), the application mode (cli, gui, tui), the number of existed windows of the application (0; 1; >1) and the optional configured raise keys for its count (singular, plural).
-* Index and browse all existed desktop entries in `<XDG_DATA_DIRS>` and `<XDG_DATA_HOME>`. Modify user specific desktop entries or create new ones with these extended keys:
+* Run or raise applications (based on desktop entries, or directly with or without belated recording).
+    * Running is dependent on: the invocation mode of `dacti`(1) (`cli` or `gui`), the application status (`block`, `ignore`, `regular`), the need for a terminal (with or without new terminal instance) and the execute key of the application (optional configured).
+    * Raising is dependent on: the application status (`block`, `ignore`, `regular`), the application mode (`cli`, `gui`, `tui`), the number of existing windows of the application (`0`; `1`; `>1`) and the optional configured raise keys for its count (`singular`, `plural`).
+* Index and browse all existing desktop entries in `<XDG_DATA_DIRS>` and `<XDG_DATA_HOME>`. Modify user specific desktop entries or create new ones with these extended keys:
     * `X-dacti_mode=(cli|gui|tui)`
     * `X-dacti_new_term=(1|true|yes|)`
     * `X-dacti_status=(block|ign|reg)`
     * `X-dacti_win_pl=LIST`
     * `X-dacti_win_sg=LIST`
-* Browse all binaries (`<PATH>`) in ascending or descending order by its names or access times. Then run or raise them.
+* Browse all binaries (`<PATH>`) in ascending or descending order by their names or access times. Then run or raise them.
 * Index and browse all desktop entries with a category key in hierarchical order. Then run or raise those desktop entries.
-* Index, browse or query (regextype: posix-egrep) all desktop entries with a keywords key. Run or raise associated desktop entries.
+* Index, browse or query (regextype: posix-egrep) all desktop entries with a keyword key. Run or raise associated desktop entries.
 * Browse all log entries of `dacti`(1). Run or raise entries with an "launch event".
 * Browse all launches by application occurence (based on logfile).
 * Modify the main selection menu and insert special "first class entries", preferably with other menu based scripts (`dacti`(1) becomes a launching pad).
 * Use a configuration file and declare your selection menu launchers, your specific entries and the default raise command list.
-
 
 ### Index
 
@@ -41,7 +40,7 @@ Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your sh
 Required: GNU bash, chmod, comm, cut, [dmenu](http://tools.suckless.org/dmenu/), GNU find, GNU grep, GNU sed, ln, [lsx](http://tools.suckless.org/lsx), mv, pgrep, ps, sort, stat, tee, uniq, [wmctrl](http://tomas.styblo.name/wmctrl/), xprop
 
 * Get `dacti`(1) with `git clone https://github.com/D630/dacti.git` or download it on https://github.com/D630/dacti/releases
-* Copy the script `dacti` elsewhere into `<PATH>` and `dacti.1` and `dacti-tutorial.5` into `<MANPATH>`.
+* Copy the script `dacti` elsewhere into `<PATH>`.
 * Copy the dir `Categories` into `<DACTI_DATA_DIR>` or its contents into `<DACTI_CATS_DATA_DIR>`.
 * Then create a keybind. In `openbox`(1) you could use:
 
@@ -145,7 +144,7 @@ See file [TUT.md](../master/doc/TUT.md)
 
 ### Configurations
 
-Along with this programm comes an exemplary [configuration file](../master/doc/examples/dacti.conf.examples). You can set following parameters:
+Along with this programme comes an exemplary [configuration file](../master/doc/examples/dacti.conf.examples). You can set following parameters:
 
 * enviroment variables: all, but `<DACTI_CONF_FILE>`
 * normal scalar variables:
@@ -169,7 +168,7 @@ Report it on https://github.com/D630/dacti/issues
 
 ### TODO
 
-All is work in progress. See file [TODO](../master/doc/TODO), which comes along with this programm.
+All is work in progress. See file [TODO](../master/doc/TODO), which comes along with this programme.
 
 ### Credits
 

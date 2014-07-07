@@ -4,6 +4,8 @@
 
 Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your shell (keyboard driven and without much graphical stuff). You do not have to be a heavy Klickibunti-user of desktop entries. `dacti`(1) simply uses the standard.
 
+![](https://raw.githubusercontent.com/D630/dacti/master/doc/dacti.png)
+
 #### Features
 
 * Run or raise applications (based on desktop entries, or directly with or without belated recording).
@@ -22,8 +24,6 @@ Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your sh
 * Browse all launches by application occurence (based on logfile).
 * Modify the main selection menu and insert special "first class entries", preferably with other menu based scripts (`dacti`(1) becomes a launching pad).
 * Use a configuration file and declare your selection menu launchers, your specific entries and the default raise command list.
-
-![](https://raw.githubusercontent.com/D630/dacti/master/doc/dacti.png)
 
 ### Index
 

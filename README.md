@@ -23,6 +23,8 @@ Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your sh
 * Modify the main selection menu and insert special "first class entries", preferably with other menu based scripts (`dacti`(1) becomes a launching pad).
 * Use a configuration file and declare your selection menu launchers, your specific entries and the default raise command list.
 
+![](https://raw.githubusercontent.com/D630/dacti/master/doc/dacti.png)
+
 ### Index
 
 1. [Install](#install)

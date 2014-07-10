@@ -8,6 +8,7 @@ TODO:
 - generate category dir hierarchy with own command
 - longterm: tagging and categorizing with own cli commands
 - options for -k and -c: system, local, all
+- handle camel case notation etc. in WM_CLASS property of some apps
 
 DONE:
 - avoid subshells

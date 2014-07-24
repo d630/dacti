@@ -4,6 +4,8 @@
 
 Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your shell (keyboard driven and without much graphical stuff). You do not have to be a heavy Klickibunti-user of desktop entries. `dacti`(1) simply uses the standard.
 
+![](https://raw.githubusercontent.com/D630/dacti/master/doc/dacti.png)
+
 #### Features
 
 * Run or raise applications (based on desktop entries, or directly with or without belated recording).
@@ -31,9 +33,9 @@ Use `dacti`(1), if you want to have a DE indepent launcher in addtion to your sh
 4. [Enviroment](#enviroment)
 5. [Configurations](#configurations)
 6. [Notes](#notes)
-7. [BUGS & REQUESTS](#bugs--requests)
+7. [Bugs & Requests](#bugs--requests)
 8. [TODO](#todo)
-9. [CREDITS](#credits)
+9. [Credits](#credits)
 
 ### Install
 
@@ -162,7 +164,7 @@ Along with this programme comes an exemplary [configuration file](../master/doc/
 
 * You may write all long name options without masking `--`. Instead of `--help` you may use `help`.
 
-### BUGS & REQUESTS
+### Bugs & Requests
 
 Report it on https://github.com/D630/dacti/issues
 

@@ -7,7 +7,8 @@ TODO:
 - optional: messaging with xmessage, notify-send
 - generate category dir hierarchy with own command
 - longterm: tagging and categorizing with own cli commands
-- options for -k, -c and -a: system, local, all
+- options for -k and -c: system, local, all
+- handle camel case notation etc. in WM_CLASS property of some apps
 
 DONE:
 - avoid subshells

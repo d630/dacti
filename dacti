@@ -231,7 +231,7 @@ __dacti_browse_keywords()
     then
         # Perform selection menu with an interactive query.
         selection=
-        eval query=($(__dacti_menu_cmd "QUERY" 0<&-))
+        query=($(__dacti_menu_cmd "QUERY" 0<&-))
 
         for i in "${query[@]}"
         do

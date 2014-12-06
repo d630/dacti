@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.6" ; }
+__dacti_version() { echo "0.1.0.7" ; }
 
 __dacti_help()
 {
@@ -613,20 +613,20 @@ __dacti_selection_0()
     } | sort | uniq
 }
 
-__dacti_comm_array()
+__dacti_comm()
 {
-    declare \
-            arg= \
-            counter= \
-            element_array_1= \
-            element_array_2= \
-            skip=
+    builtin declare \
+        arg= \
+        counter= \
+        element_array_1= \
+        element_array_2= \
+        skip=
 
-    declare -a \
-               array_1=() \
-               array_2=()
+    builtin declare -a \
+        "array_1=()" \
+        "array_2=()"
 
-    { (($#)) && counter=1 ; } || return 1
+    { (($#)) && counter=1 ; } || builtin return 1
 
     for arg
     do
@@ -637,19 +637,19 @@ __dacti_comm_array()
     do
         while [[ $# -gt 0 && $1 != -- ]]
         do
-            eval "array_${i}+=( "$1" )"
-            shift 1
+            builtin eval "array_${i}+=( "$1" )"
+            builtin shift 1
         done
-        [[ $1 == -- ]] && shift 1
+        [[ $1 == -- ]] && builtin shift 1
     done
 
     for element_array_1 in "${array_1[@]}"
     do
         for element_array_2 in "${array_2[@]}"
         do
-            [[ $element_array_1 == $element_array_2 ]] && { skip=1 ; break ; }
+            [[ $element_array_1 == $element_array_2 ]] && { skip=1 ; builtin break ; }
         done
-        ((skip)) || printf '%s\n' "$element_array_1"
+        ((skip)) || builtin printf '%s\n' "$element_array_1"
         skip=
     done
 }

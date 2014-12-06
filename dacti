@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.11" ; }
+__dacti_version() { echo "0.1.0.12" ; }
 
 __dacti_help()
 {
@@ -96,13 +96,27 @@ __dacti_help()
 '
 }
 
-__dacti_bin_asc() { lsx ${PATH//:/ } | sort | uniq ; }
+__dacti_bin_asc() { command lsx ${PATH//:/ } | command sort -u ; }
 
-__dacti_bin_atime_asc() { find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' | sort -n | cut -f2 | fgrep -xf <(lsx ${PATH//:/ }) | uniq  ; }
+__dacti_bin_atime_asc()
+{
+    command find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' | \
+    command sort -n | \
+    command cut -f2 | \
+    command fgrep -xf <(command lsx ${PATH//:/ }) | \
+    command uniq
+}
 
-__dacti_bin_atime_desc() { find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' | sort -rn | cut -f2 | fgrep -xf <(lsx ${PATH//:/ }) | uniq ; }
+__dacti_bin_atime_desc()
+{
+    command find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' | \
+    command sort -rn | \
+    command cut -f2 | \
+    command fgrep -xf <(command lsx ${PATH//:/ }) | \
+    command uniq
+}
 
-__dacti_bin_desc() { lsx ${PATH//:/ } | sort -r | uniq ; }
+__dacti_bin_desc() { command lsx ${PATH//:/ } | command sort -ru ; }
 
 __dacti_menu_cmd()
 {
@@ -114,17 +128,24 @@ __dacti_menu_cmd()
     fi
 }
 
-__dacti_occur() { grep -e '^.* launch .*$' "$DACTI_LOG_FILE" | cut -d ' ' -f3 | sort | uniq -c | sort -nr ; }
+__dacti_occur()
+{
+    command grep -e '^.* launch .*$' "$DACTI_LOG_FILE" | \
+    command cut -d ' ' -f3 | \
+    command sort | \
+    command uniq -c | \
+    command sort -nr
+}
 
-__dacti_browse_log() { sort -rn "$DACTI_LOG_FILE" ; }
+__dacti_browse_log() { command sort -rn "$DACTI_LOG_FILE" ; }
 
 __dacti_browse_categories()
 {
     (($# == 0)) && builtin return 1
 
     builtin declare \
-        selection="$1" \
-        parent=
+        parent= \
+        selection="$1"
 
     # Update categories before, if wanted with ":u".
     [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && {
@@ -138,8 +159,10 @@ __dacti_browse_categories()
     parent=${DACTI_CATS_DATA_DIR##*/}/${selection}
     while [[ $selection ]]
     do
-        builtin read -r selection \
-            < <({ builtin printf '%s\n' '[..]' '[.]' ; command find "${DACTI_CATS_DATA_DIR%/*}/${parent}" -mindepth 1 -maxdepth 1 -printf '%f\n' ; } | command sort | __dacti_menu_cmd ${parent##*/})
+        builtin read -r selection < <( {
+                     builtin printf '%s\n' '[..]' '[.]'
+                     command find "${DACTI_CATS_DATA_DIR%/*}/${parent}" -mindepth 1 -maxdepth 1 ! -name '.dummy' -printf '%f\n'
+                 } | command sort | __dacti_menu_cmd ${parent##*/})
         case $selection in
             \[..\])     parent=${parent%/*}                           ;;
             \[.\])      parent=$parent                                ;;
@@ -151,119 +174,44 @@ __dacti_browse_categories()
 
 __dacti_browse_keywords()
 {
-    __dacti_search_post()
-    {
-        declare key=
+    (($# == 0)) && builtin return 1
 
-        if [[ ( ${operators[or]} && ${operators[not]} ) || ${operators[or]} ]]
-        then
-            for key in "${!search[@]}"
-            do
-                [[ $key =~ (^not*|^and*) ]] && continue
-                [[ ${search[$key]} == ${search[${key/or/not}]} ]] &&
-                {
-                    unset -v "search[$key]"
-                    unset -v "search[${key/or/not}]"
-                }
-            done
-
-            [[ ${operators[and]} ]] &&
-            {
-                for key in "${!search[@]}"
-                do
-                    [[ $key =~ ^and* ]] && continue
-                    if [[ ${search[$key]} == ${search[${key/or/and}]} ]]
-                    then
-                        unset -v "search[${key/or/and}]"
-                    else
-                        unset -v "search[$key]"
-                    fi
-                done
-            }
-
-            for key in "${!search[@]}"
-            do
-                [[ ! $key =~ ^and* ]] && search[${key/or /}]=1
-                unset -v "search[$key]"
-            done
-        elif [[ ${operators[not]} ]]
-        then
-            for key in "${!search[@]}"
-            do
-                [[ $key =~ ^not* ]] &&
-                {
-                    keyy=${key/not /}
-                    search[${keyy% *}]=1
-                }
-                unset -v "search[$key]"
-            done
-
-            for key in "${!search[@]}"
-            do
-                [[ $key =~ [[:blank:]] ]] || unset -v "search[$key]"
-            done
-        fi
-    }
-
-    (($# == 0)) && return 1
-
-    declare \
-            file= \
-            i= \
-            keywords= \
-            operator= \
-            parent= \
-            query= \
-            query_keywords= \
-            selection=$1
-
-    declare -A search \
-               operators
+    builtin declare \
+        file= \
+        keywords= \
+        parent= \
+        selection="$1"
 
     # If wanted with ":u", update keywords before.
-    [[ $selection == :* ]] &&
-    {
-        [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && __dacti_update_keywords && __dacti_set_log "Keywords: Update has been proccessed."
-        [[ $selection =~ ^:.*q.*[[:space:]].*$ ]] && query_keywords=query_keywords
+    [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && {
+        __dacti_update_keywords
         selection=${selection#:* }
     }
 
-    if [[ $query_keywords ]]
-    then
-        # Perform selection menu with an interactive query.
-        selection=
-        query=($(__dacti_menu_cmd "QUERY" 0<&-))
+    # Now handle the selection menu and perform selections.
+    builtin read -r selection \
+        < <(__dacti_menu_cmd "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")
+    while [[ $selection ]]
+    do
+        parent=$selection
+        builtin read -r selection < <( {
+                    builtin printf '%s\n' '[..]' '[.]'
+                    command grep -e "^.*:Keywords=.*${selection};.*$" "$DACTI_KEYWS_INDEX_FILE" | \
+                    command sed -r -e 's/:Keywords=.*//' -e 's/(.*)\/([^\/]*)$/\2/'
+                 } | __dacti_menu_cmd "$parent")
 
-        for i in "${query[@]}"
-        do
-            [[ $i =~ ^(and|not|or)$ ]] && operator=$i && continue
-            operator=${operator:-or}
-            operators[$operator]=1
-            while IFS=':' read -r file keywords
-            do
-                keywords=${keywords#Keywords=}
-                search[${operator} ${file}]=1
-            done < <(egrep -e "^(.*):Keywords=.*${i};.*$" "$DACTI_KEYWS_INDEX_FILE")
-        done
-
-        __dacti_search_post
-
-        selection=$(for key in "${!search[@]}" ; do printf '%s\n' "${key##*/}" ; done | __dacti_menu_cmd "MATCH")
-        [[ $selection ]] && __dacti_check_status "${selection%.desktop}"
-    else
-        # Just perform the selection menu.
-        read -r selection < <(__dacti_menu_cmd "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")
-        while [[ $selection ]]
-        do
-            parent=$selection
-            read -r selection < <({ printf '%s\n' '[..]' '[.]' ; while IFS=':' read -r file keywords ; do printf '%s\n' "${file##*/}" ; done < <(egrep -e "^(.*):Keywords=.*${selection};.*$" "$DACTI_KEYWS_INDEX_FILE") ; }| __dacti_menu_cmd "$parent")
-            case $selection in
-                \[.\])      selection=$parent                                                           ;;
-                \[..\])     read -r selection < <(__dacti_menu_cmd "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")  ;;
-                *)          __dacti_check_status "${selection%.desktop}"                                ;;
-            esac
-        done
-    fi
+        case $selection in
+            \[.\])
+                selection=$parent
+                ;;
+            \[..\])
+                builtin read -r selection < <(__dacti_menu_cmd "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")
+                ;;
+            *)
+                __dacti_check_status "${selection%.desktop}"
+                ;;
+        esac
+    done
 }
 
 __dacti_check_status()

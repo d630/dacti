@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.12" ; }
+__dacti_version() { echo "0.1.0.13" ; }
 
 __dacti_help()
 {
@@ -72,8 +72,6 @@ __dacti_help()
       [KEYWORDS]                 Browse keywords in a selection menu and
                                  select associated desktop files.
         :u [KEYWORDS]            Update the keyword index before.
-        :q [KEYWORDS]            Invoke a query menu and look for desktop
-                                 files.
       [LOG]                      Browse all log entries of dacti in a
                                  selection menu. Start applications from
                                  it by selecting

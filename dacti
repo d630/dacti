@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.8" ; }
+__dacti_version() { echo "0.1.0.9" ; }
 
 __dacti_help()
 {
@@ -722,7 +722,7 @@ __dacti_update_categories()
         ((${#categories[@]} == 0)) && builtin continue
 
         builtin mapfile -t main < <(command fgrep -e "$(builtin printf '%s\n' "${categories[@]}")" "$DACTI_CATS_MAIN_INFO_FILE")
-        builtin mapfile -t sub < <(__dacti_comm_array "${categories[@]}" -- "${main[@]}")
+        builtin mapfile -t sub < <(__dacti_comm "${categories[@]}" -- "${main[@]}")
 
         for i in "${sub[@]}"
         do
@@ -777,11 +777,10 @@ __dacti_set_args()
 
 __dacti_set_status()
 {
-    builtin declare \
-        status_code=$1 \
-        status_message=$2
+    builtin declare -i status_code=$1
+    builtin declare status_message="$2"
 
-    if (($status_code == 0))
+    if ((status_code == 0))
     then
         builtin printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) success ${status_message}" >> "$DACTI_LOG_FILE"
     else

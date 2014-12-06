@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.7" ; }
+__dacti_version() { echo "0.1.0.8" ; }
 
 __dacti_help()
 {
@@ -129,7 +129,7 @@ __dacti_browse_categories()
     # Update categories before, if wanted with ":u".
     [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] &&
     {
-        __dacti_update_categories && __dacti_logger "Categories: Update has been processed."
+        __dacti_update_categories && __dacti_set_log "Categories: Update has been processed."
         selection=${selection#:* }
     }
 
@@ -222,7 +222,7 @@ __dacti_browse_keywords()
     # If wanted with ":u", update keywords before.
     [[ $selection == :* ]] &&
     {
-        [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && __dacti_update_keywords && __dacti_logger "Keywords: Update has been proccessed."
+        [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && __dacti_update_keywords && __dacti_set_log "Keywords: Update has been proccessed."
         [[ $selection =~ ^:.*q.*[[:space:]].*$ ]] && query_keywords=query_keywords
         selection=${selection#:* }
     }
@@ -275,7 +275,7 @@ __dacti_check_status()
 
         for i in "${xids[@]}"
         do
-            wmctrl -i -a "$i" || { launch_status=fail ; __dacti_logger "Raising: Window ${i} of ${selection% *} has not raised." ; }
+            wmctrl -i -a "$i" || { launch_status=fail ; __dacti_set_log "Raising: Window ${i} of ${selection% *} has not raised." ; }
         done
     }
 
@@ -342,7 +342,7 @@ __dacti_check_status()
                         else
                             __dacti_do_win_sg || fail=fail
                         fi
-                        [[ $fail == fail ]] && { launch_status=fail ; __dacti_logger "Raising: Window of ${selection% *} has not raised." ; }
+                        [[ $fail == fail ]] && { launch_status=fail ; __dacti_set_log "Raising: Window of ${selection% *} has not raised." ; }
                     fi
                     ;;
             *)
@@ -377,7 +377,7 @@ __dacti_check_status()
             fi
         else
             launch_status=fail
-            __dacti_logger "Execution: Command ${selection% *} is unknown."
+            __dacti_set_log "Execution: Command ${selection% *} is unknown."
             return 1
         fi
     }
@@ -394,7 +394,7 @@ __dacti_check_status()
         then
             # If a desktop file has already been created in "${xdg_applications_home}", then its desktop file needs to be updated. We insert then a new application section/group.
             name=$(__dacti_menu_cmd "Give a name" <<< "${selection% *}")
-            [[ ! $name ]] && { __dacti_logger "File creation: aborted." ; return 1 ; }
+            [[ ! $name ]] && { __dacti_set_log "File creation: aborted." ; return 1 ; }
 
             action_name=${selection% *}_${RANDOM}
             while IFS='=' read -r key val
@@ -420,12 +420,12 @@ X-dacti_win_sg=" 1>> "${xdg_applications_home}/${selection% *}.desktop"
             # Index file?
             if egrep -q -e "(.*) (.*) ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" "$DACTI_APPS_INDEX_FILE"
             then
-                __dacti_logger "File creation: File has already been indexed."
+                __dacti_set_log "File creation: File has already been indexed."
             else
                 printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" 1>> "$DACTI_APPS_INDEX_FILE"
             fi
 
-            __dacti_logger "${selection% *}: An already existed Desktop File has been updated."
+            __dacti_set_log "${selection% *}: An already existed Desktop File has been updated."
         else
             # Create new desktop file with all official keys + dactis own keys.
             printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" 1>> "$DACTI_APPS_INDEX_FILE"
@@ -463,7 +463,7 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
 
             chmod 755 "${xdg_applications_home}/${selection% *}.desktop"
 
-            __dacti_logger "${selection% *}: New Desktop File has been created."
+            __dacti_set_log "${selection% *}: New Desktop File has been created."
         fi
     }
 
@@ -578,20 +578,20 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
 
     # Check the status of the application.
     case ${sections[${section_number} X_dacti_status]} in
-        block)      [[ ! $build_new_file ]] && __dacti_logger "${selection% *}: block status true." && return 1 ;;
-        ign)        __dacti_logger "${selection% *}: ign status true." && __dacti_exec_selection ;;
+        block)      [[ ! $build_new_file ]] && __dacti_set_log "${selection% *}: block status true." && return 1 ;;
+        ign)        __dacti_set_log "${selection% *}: ign status true." && __dacti_exec_selection ;;
         reg)        __dacti_check_wins ;;
-        *)          __dacti_status_code 1 "Quit: Status ${status} is unknown."
+        *)          __dacti_set_status 1 "Quit: Status ${status} is unknown."
     esac
 
     if [[ $launch_status == fail ]]
     then
-        __dacti_status_code 1 "Quit: Launch has failed."
+        __dacti_set_status 1 "Quit: Launch has failed."
     else
         # Create new desktop file, if invoked with ":u" or if there is no entry in the index file.
         [[ $build_new_file ]] && __dacti_build_new_file
         printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) launch ${selection% *}" 1>> "$DACTI_LOG_FILE"
-        __dacti_status_code 0 "Quit: Execution has finished."
+        __dacti_set_status 0 "Quit: Execution has finished."
     fi
 }
 
@@ -661,7 +661,7 @@ __dacti_update_applications()
         mode= \
         path=
 
-    exec 3>>"$DACTI_APPS_INDEX_FILE"
+    builtin exec 3>>"$DACTI_APPS_INDEX_FILE"
 
     if [[ -f $DACTI_APPS_CACHE_FILE ]]
     then
@@ -696,9 +696,9 @@ __dacti_update_applications()
         done < <(command find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -printf '%T@ %p\n' 2>/dev/null | command sort -n | command tee "$DACTI_APPS_CACHE_FILE")
     fi
 
-    exec 3<&-
+    builtin exec 3<&-
 
-    __dacti_logger "Applications: Update has been proccessed"
+    __dacti_set_log "Applications: Update has been proccessed"
 }
 
 __dacti_update_categories()
@@ -713,7 +713,7 @@ __dacti_update_categories()
         "main=()" \
         "sub=()"
 
-    builtin cd -- "$DACTI_CATS_DATA_DIR" || __dacti_status_code 1 "Categories: Could not cd into dir '${DACTI_CATS_DATA_DIR}'"
+    builtin cd -- "$DACTI_CATS_DATA_DIR" || __dacti_set_status 1 "Categories: Could not cd into dir '${DACTI_CATS_DATA_DIR}'"
 
     while IFS=':' builtin read -r file cats
     do
@@ -745,7 +745,7 @@ __dacti_update_categories()
 
     command find "$DACTI_CATS_DATA_DIR" -type l -xtype l -delete
 
-    __dacti_logger "Categories: Update has been proccessed"
+    __dacti_set_log "Categories: Update has been proccessed"
 }
 
 __dacti_update_keywords()
@@ -758,7 +758,7 @@ __dacti_update_keywords()
         command grep -v -e '^$' | \
         command sort -u  > "$DACTI_KEYWS_CACHE_FILE"
 
-    __dacti_logger "Keywords: Update has been proccessed"
+    __dacti_set_log "Keywords: Update has been proccessed"
 }
 
 __dacti_set_args()
@@ -775,28 +775,27 @@ __dacti_set_args()
     fi
 }
 
-__dacti_status_code()
+__dacti_set_status()
 {
-    declare \
-            status_code=$1 \
-            status_message=$2
+    builtin declare \
+        status_code=$1 \
+        status_message=$2
 
     if (($status_code == 0))
     then
-        printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) success ${status_message}" 1>> "$DACTI_LOG_FILE"
+        builtin printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) success ${status_message}" >> "$DACTI_LOG_FILE"
     else
-        printf '%s\n' "${0##*/}:Status:Error:${status_code}: ${status_message}" 1>&2
-        printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) error ${status_message}" 1>> "$DACTI_LOG_FILE"
+        builtin printf '%s\n' "${0##*/}:Status:Error:${status_code}: ${status_message}" >&2
+        builtin printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) error ${status_message}" >> "$DACTI_LOG_FILE"
     fi
 
-    exit "$status_code"
+    builtin exit "$status_code"
 }
 
-__dacti_logger()
+__dacti_set_log()
 {
-    declare log_message=$1
-
-    printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) event ${log_message}" 1>> "$DACTI_LOG_FILE"
+    builtin declare log_message=$1
+    builtin printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) event ${log_message}" >> "$DACTI_LOG_FILE"
 }
 
 __dacti_set_environment()
@@ -926,7 +925,7 @@ __dacti_main()
     [[ $update_applications == update_applications ]] && __dacti_update_applications
     [[ $update_categories == update_categories ]] && __dacti_update_categories
     [[ $update_keywords == update_keywords ]] && __dacti_update_keywords
-    [[ $quit == quit ]] && __dacti_status_code 0 "Quit: With these command line options: '$@'"
+    [[ $quit == quit ]] && __dacti_set_status 0 "Quit: With these command line options: '$@'"
     builtin shift $((OPTIND-1))
 
     # Unset variables and functions, we do not need anymore.
@@ -978,7 +977,7 @@ __dacti_main()
                 __dacti_selection_custom "${selection//[\[\]]/}"
                 ;;
             "")
-                __dacti_status_code 0 "Quit: Nothing has been chosen"
+                __dacti_set_status 0 "Quit: Nothing has been chosen"
                 ;;
             *)
                 __dacti_check_status "$selection"

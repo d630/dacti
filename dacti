@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.1" ; }
+__dacti_version() { echo "0.1.0.2" ; }
 
 __dacti_help()
 {
@@ -751,16 +751,15 @@ __dacti_update_keywords()
 
 __dacti_check_args()
 {
-    declare o=
-
-    if [[ ! $OPTARG =~ -.+ ]]
+    builtin declare o=
+    if [[ ! $OPTARG =~ ^-.+ ]]
     then
         for o
         do
-            declare -g "$o"
+            builtin declare -g "$o"
         done
     else
-        { printf '%s\n' "Option -${opt} requires an argument." 1>&2 ; exit 1 ; }
+        { builtin printf '%s\n' "Option -${opt} requires an argument." 1>&2 ; builtin exit 1 ; }
     fi
 }
 
@@ -790,148 +789,189 @@ __dacti_logger()
 
 # -- MAIN.
 
-# Prepare performing options from command line.
-declare \
+
+__dacti_main()
+{
+    # Prepare performing options from command line.
+    builtin declare \
         arg= \
         args= \
-        delim= \
+        delim=\'
+
+    # Translate long options into short options.
+    for arg
+    do
+        arg=${arg#--}
+        case $arg in
+            conf-file=?*)           args="${args}-C ${delim}${arg#*=}${delim} " ;;
+            help)                   args="${args}-h "                           ;;
+            pretend)                args="${args}-p "                           ;;
+            quit)                   args="${args}-q "                           ;;
+            update-applications)    args="${args}-a "                           ;;
+            update-categories)      args="${args}-c "                           ;;
+            update-keywords)        args="${args}-k "                           ;;
+            version)                args="${args}-v "                           ;;
+            *)                      if [[ ${arg:0:1} == - ]]
+                                    then
+                                        args="${args}${arg} "
+                                    else
+                                        args="${args}${delim}${arg}${delim} "
+                                    fi
+        esac
+    done
+
+    builtin declare \
         opt= \
+        pretend= \
         quit= \
         update_applications= \
         update_categories= \
-        update_keywords= \
-        pretend=
+        update_keywords=
 
-# Translate long options into short options.
-for arg
-do
-    arg=${arg#--}
-    case $arg in
-        conf-file=*)            args="${args}-C ${arg#*=} "            ;;
-        help)                   args="${args}-h "                      ;;
-        pretend)                args="${args}-p "                      ;;
-        quit)                   args="${args}-q "                      ;;
-        update-applications)    args="${args}-a "                      ;;
-        update-categories)      args="${args}-c "                      ;;
-        update-keywords)        args="${args}-k "                      ;;
-        version)                args="${args}-v "                      ;;
-        *)                      [[ ${arg:0:1} != - ]] && delim=\"
-                                args="${args}${arg} "
-                                delim=                                 ;;
-    esac
-done
+    # Do getopts.
+    builtin eval builtin set -- "$args"
+    while builtin getopts :acC:hkpqv opt
+    do
+        case $opt in
+            C)  __dacti_check_args "DACTI_CONF_FILE=$OPTARG"    ;;
+            a)  update_applications=update_applications         ;;
+            c)  update_categories=update_categories             ;;
+            h)  __dacti_help ; builtin exit 0                   ;;
+            k)  update_keywords=update_keywords                 ;;
+            p)  pretend=pretend                                 ;;
+            q)  quit=quit                                       ;;
+            v)  __dacti_version ; builtin exit 0                ;;
+            :)  builtin printf '%s\n' "Option '-${OPTARG}' requires an argument." 1>&2
+                builtin exit 1                                  ;;
+            \?) builtin printf '%s\n' "Unknown flag: '-${OPTARG}'." 1>&2
+                builtin exit 1
+        esac
+    done
+    builtin shift $((OPTIND-1))
 
-# Do getopts.
-eval set -- $args
-while getopts :acC:hkpqv opt
-do
-    case $opt in
-        a)      update_applications=update_applications               ;;
-        C)      __dacti_check_args "DACTI_CONF_FILE=$OPTARG"          ;;
-        c)      update_categories=update_categories                   ;;
-        h)      __dacti_help ; exit 0                                 ;;
-        k)      update_keywords=update_keywords                       ;;
-        p)      pretend=pretend                                       ;;
-        q)      quit=quit                                             ;;
-        v)      __dacti_version ; exit 0                              ;;
-    esac
-done
-shift $((OPTIND-1))
-
-# Declare some enviroments, before we will source a Conf File.
-declare -r \
-           predir_datadir=${XDG_DATA_HOME:-${HOME}/.local/share} \
-           predir_configdir=${XDG_CONFIG_HOME:-${HOME}/.config}
-declare -r DACTI_CONF_FILE=${DACTI_CONF_FILE:-${predir_configdir}/dacti}/dacti.conf
-
-declare -A d_color
-declare \
+    # Declare some enviroments, before we will source a Conf File.
+    builtin declare \
+        predir_datadir=${XDG_DATA_HOME:-${HOME}/.local/share} \
+        predir_configdir=${XDG_CONFIG_HOME:-${HOME}/.config}
+    builtin declare -gr DACTI_CONF_FILE=${DACTI_CONF_FILE:-${predir_configdir}/dacti}/dacti.conf
+    builtin declare -gA d_color
+    builtin declare -g \
         menu_0_prompt= \
         term=
-declare -a menu_0=()
-if [[ -f $DACTI_CONF_FILE ]]
-then
-    source "$DACTI_CONF_FILE" 2>/dev/null || { printf '%s\n' "${0##*/}:Status:Error:1: ${DACTI_CONF_FILE} has not been sourced." 1>&2 ; exit 1 ; }
-else
-     { printf '%s\n' "${0##*/}:Status:Error:1: ${$DACTI_CONF_FILE} is not a regular file." 1>&2 ; exit 1 ; }
-fi
+    builtin declare -ga "menu_0=()"
 
-# Now declare all other enviroment variables.
-declare -r DACTI_DATA_DIR=${DACTI_DATA_DIR:-${predir_datadir}/dacti}
-declare -r \
-           DACTI_APPS_INDEX_FILE=${DACTI_APPS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_applications.index} \
-           DACTI_APPS_CACHE_FILE=${DACTI_APPS_CACHE_FILE:-${DACTI_DATA_DIR}/dacti_applications.cache} \
-           DACTI_CATS_DATA_DIR=${DACTI_CATS_DATA_DIR:-${DACTI_DATA_DIR}/Categories} \
-           DACTI_CATS_INDEX_FILE=${DACTI_CATS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_categories.index} \
-           DACTI_CATS_MAIN_INFO_FILE=${DACTI_CATS_MAIN_INFO_FILE:-${DACTI_DATA_DIR}/dacti_categories_main.info} \
-           DACTI_CATS_SUB_INFO_FILE=${DACTI_CATS_SUB_INFO_FILE:-${DACTI_DATA_DIR}/dacti_categories_sub.info} \
-           DACTI_KEYWS_INDEX_FILE=${DACTI_KEYWS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_keywords.index} \
-           DACTI_KEYWS_CACHE_FILE=${DACTI_KEYWS_CACHE_FILE:-${DACTI_DATA_DIR}/dacti_keywords.cache} \
-           DACTI_LOG_FILE=${DACTI_LOG_FILE:-${DACTI_DATA_DIR}/dacti.log} \
-           DACTI_TMP_DIR=${DACTI_TMP_DIR:-${TMPDIR:-/tmp}} \
-           xdg_data_dirs=${XDG_DATA_DIRS:-/usr/local/share:/usr/share}
-declare -r DACTI_APPS_DIRS=${DACTI_APPS_DIRS:-${xdg_data_dirs}} \
-           DACTI_APPS_DIR_HOME=${DACTI_APPS_DIR_HOME:-${predir_datadir}/applications}
-declare -r xdg_applications_home=$DACTI_APPS_DIR_HOME
-declare -a xdg_applications=(${DACTI_APPS_DIRS//:/ })
-declare -ra xdg_applications=(${xdg_applications[@]/%/\/applications})
-declare -r menu_0_prompt=${menu_0_prompt:->} \
-           term=${term:-xterm}
-declare -a menu_0=(${menu_0[@]:-BIN-ASC BIN-ATIME-ASC BIN-ATIME-DESC BIN-DESC CATEGORIES KEYWORDS LOG OCCUR})
+    if [[ -f $DACTI_CONF_FILE ]]
+    then
+        builtin source "$DACTI_CONF_FILE" 2>/dev/null || \
+        { builtin printf '%s\n' "${0##*/}:Status:Error:1: ${DACTI_CONF_FILE} has not been sourced." 1>&2 ; builtin exit 1 ; }
+    else
+         { builtin printf '%s\n' "${0##*/}:Status:Error:1: ${$DACTI_CONF_FILE} is not a regular file." 1>&2 ; builtin exit 1 ; }
+    fi
 
-# Declare last variables.
-declare \
-        invocation_mode= \
-        selection=
+    # Now declare all other enviroment variables.
+    builtin declare -gr DACTI_DATA_DIR=${DACTI_DATA_DIR:-${predir_datadir}/dacti}
+    builtin declare -gr \
+       DACTI_APPS_INDEX_FILE=${DACTI_APPS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_applications.index} \
+       DACTI_APPS_CACHE_FILE=${DACTI_APPS_CACHE_FILE:-${DACTI_DATA_DIR}/dacti_applications.cache} \
+       DACTI_CATS_DATA_DIR=${DACTI_CATS_DATA_DIR:-${DACTI_DATA_DIR}/Categories} \
+       DACTI_CATS_INDEX_FILE=${DACTI_CATS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_categories.index} \
+       DACTI_CATS_MAIN_INFO_FILE=${DACTI_CATS_MAIN_INFO_FILE:-${DACTI_DATA_DIR}/dacti_categories_main.info} \
+       DACTI_CATS_SUB_INFO_FILE=${DACTI_CATS_SUB_INFO_FILE:-${DACTI_DATA_DIR}/dacti_categories_sub.info} \
+       DACTI_KEYWS_INDEX_FILE=${DACTI_KEYWS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_keywords.index} \
+       DACTI_KEYWS_CACHE_FILE=${DACTI_KEYWS_CACHE_FILE:-${DACTI_DATA_DIR}/dacti_keywords.cache} \
+       DACTI_LOG_FILE=${DACTI_LOG_FILE:-${DACTI_DATA_DIR}/dacti.log} \
+       DACTI_TMP_DIR=${DACTI_TMP_DIR:-${TMPDIR:-/tmp}} \
+       xdg_data_dirs=${XDG_DATA_DIRS:-/usr/local/share:/usr/share}
+    builtin declare -gr \
+        DACTI_APPS_DIRS=${DACTI_APPS_DIRS:-${xdg_data_dirs}} \
+        DACTI_APPS_DIR_HOME=${DACTI_APPS_DIR_HOME:-${predir_datadir}/applications}
+    builtin declare -gr xdg_applications_home=$DACTI_APPS_DIR_HOME
+    builtin declare -a "xdg_applications=(${DACTI_APPS_DIRS//:/ })"
+    builtin declare -gra "xdg_applications=(${xdg_applications[@]/%/\/applications})"
+    builtin declare -gr \
+        menu_0_prompt=${menu_0_prompt:->} \
+        term=${term:-xterm}
+    builtin declare -gra "menu_0=(${menu_0[@]:-BIN-ASC BIN-ATIME-ASC BIN-ATIME-DESC BIN-DESC CATEGORIES KEYWORDS LOG OCCUR})"
+    builtin declare -g invocation_mode=
 
-if tty -s
-then
-    invocation_mode=cli
-elif [[ $DISPLAY ]]
-then
-    invocation_mode=gui
-else
-    { printf '%s\n' "${0##*/}:Status:Error:1: Neither cli nor gui mode." 1>&2 ; exit 1 ; }
-fi
+    if command tty -s
+    then
+        invocation_mode=cli
+    elif [[ $DISPLAY ]]
+    then
+        invocation_mode=gui
+    else
+        { builtin printf '%s\n' "${0##*/}:Status:Error:1: Neither cli nor gui mode." 1>&2 ; builtin exit 1 ; }
+    fi
 
-# Create index file and app dir, if they have not been created before.
-[[ -d $DACTI_DATA_DIR ]] || mkdir -p "$DACTI_DATA_DIR"
-[[ -f $DACTI_APPS_INDEX_FILE ]] || 1> "$DACTI_APPS_INDEX_FILE"
+    # Create index file and app dir, if they have not been created before.
+    [[ -d $DACTI_DATA_DIR ]] || command mkdir -p "$DACTI_DATA_DIR"
+    [[ -f $DACTI_APPS_INDEX_FILE ]] || 1> "$DACTI_APPS_INDEX_FILE"
 
-# Perform options from command line.
-[[ $update_applications == update_applications ]] && __dacti_update_applications
-[[ $update_categories == update_categories ]] && __dacti_update_categories
-[[ $update_keywords == update_keywords ]] && __dacti_update_keywords
-[[ $quit == quit ]] && __dacti_status_code 0 "Quit: With these command line options: ${index_applications:+${index_applications/%/ }}${update_categories:+${update_categories/%/ }}${update_keywords}."
+    # Perform options from command line.
+    [[ $update_applications == update_applications ]] && __dacti_update_applications
+    [[ $update_categories == update_categories ]] && __dacti_update_categories
+    [[ $update_keywords == update_keywords ]] && __dacti_update_keywords
+    [[ $quit == quit ]] && __dacti_status_code 0 "Quit: With these command line options: ${index_applications:+${index_applications/%/ }}${update_categories:+${update_categories/%/ }}${update_keywords}."
 
-# Unset variables, we do not need anymore.
-unset -v \
-         arg \
-         args \
-         delim \
-         opt \
-         quit \
-         update_applications \
-         update_categories \
-         update_keywords
+    # Unset variables, we do not need anymore.
+    builtin unset -v \
+        arg \
+        args \
+        delim \
+        opt \
+        predir_configdir
+        predir_datadir \
+        quit \
+        update_applications \
+        update_categories \
+        update_keywords
 
-# Perform the main selection menu and handle selections.
-while :
-do
-    selection=$(__dacti_selection_0 | __dacti_menu_cmd)
-    case ${selection,,} in
-        \[bin-asc\])        __dacti_check_status "$(__dacti_bin_asc | __dacti_menu_cmd "BIN-ASC")" ;;
-        \[bin-atime-asc\])  __dacti_check_status "$(__dacti_bin_atime_asc | __dacti_menu_cmd "BIN-ATIME-ASC")" ;;
-        \[bin-atime-desc\]) __dacti_check_status "$(__dacti_bin_atime_desc | __dacti_menu_cmd "BIN-ATIME-DESC")" ;;
-        \[bin-desc\])       __dacti_check_status "$(__dacti_bin_desc | __dacti_menu_cmd "BIN-DESC")" ;;
-        *\[categories\])    __dacti_browse_categories "$selection" ;;
-        *\[keywords\])      __dacti_browse_keywords "$selection" ;;
-        \[log\])            selection=$(__dacti_browse_log | __dacti_menu_cmd "LOG") &&
-                            [[ $selection =~ (^.* launch .*$) ]] &&
-                            __dacti_check_status "${selection#* * }" || continue ;;
-        \[occur\])          selection=$(__dacti_occur | __dacti_menu_cmd "OCCUR") && __dacti_check_status "${selection#      * }" ;;
-        \[*\])              declare -f __dacti_selection_custom 1>/dev/null 2>&1 && __dacti_selection_custom "${selection//[\[\]]/}" ;;
-        "")                 __dacti_status_code 0 "Quit: Nothing has been chosen." ;;
-        *)                  __dacti_check_status "$selection" ;;
-    esac
-done
+    # Perform the main selection menu and handle selections.
+    builtin declare -g selection=
+    while builtin :
+    do
+        selection=$(__dacti_selection_0 | __dacti_menu_cmd)
+        case ${selection,,} in
+            \[bin-asc\])
+                __dacti_check_status "$(__dacti_bin_asc | __dacti_menu_cmd "BIN-ASC")"
+                ;;
+            \[bin-atime-asc\])
+                __dacti_check_status "$(__dacti_bin_atime_asc | __dacti_menu_cmd "BIN-ATIME-ASC")"
+                ;;
+            \[bin-atime-desc\])
+                __dacti_check_status "$(__dacti_bin_atime_desc | __dacti_menu_cmd "BIN-ATIME-DESC")"
+                ;;
+            \[bin-desc\])
+                __dacti_check_status "$(__dacti_bin_desc | __dacti_menu_cmd "BIN-DESC")"
+                ;;
+            *\[categories\])
+                __dacti_browse_categories "$selection"
+                ;;
+            *\[keywords\])
+                __dacti_browse_keywords "$selection"
+                ;;
+            \[log\])
+                selection=$(__dacti_browse_log | __dacti_menu_cmd "LOG") && \
+                [[ $selection =~ (^.* launch .*$) ]] && \
+                __dacti_check_status "${selection#* * }" || \
+                builtin continue
+                ;;
+            \[occur\])
+                selection=$(__dacti_occur | __dacti_menu_cmd "OCCUR") && \
+                __dacti_check_status "${selection#      * }"
+                ;;
+            \[*\])
+                builtin declare -f __dacti_selection_custom 1>/dev/null 2>&1 && \
+                __dacti_selection_custom "${selection//[\[\]]/}"
+                ;;
+            "")
+                __dacti_status_code 0 "Quit: Nothing has been chosen."
+                ;;
+            *)
+                __dacti_check_status "$selection"
+        esac
+    done
+}
+
+__dacti_main "$@"

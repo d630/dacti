@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.2" ; }
+__dacti_version() { echo "0.1.0.3" ; }
 
 __dacti_help()
 {
@@ -749,7 +749,7 @@ __dacti_update_keywords()
     done < <(find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -exec grep -HR '^Keywords=' /dev/null {} + | sed -e '{s/ $//;s/$/;/;s/;;/;/;s/; /;/g}' | tee "$DACTI_KEYWS_INDEX_FILE") | sort | uniq 1> "$DACTI_KEYWS_CACHE_FILE"
 }
 
-__dacti_check_args()
+__dacti_set_args()
 {
     builtin declare o=
     if [[ ! $OPTARG =~ ^-.+ ]]
@@ -833,7 +833,7 @@ __dacti_main()
     while builtin getopts :acC:hkpqv opt
     do
         case $opt in
-            C)  __dacti_check_args "DACTI_CONF_FILE=$OPTARG"    ;;
+            C)  __dacti_set_args "DACTI_CONF_FILE=$OPTARG"    ;;
             a)  update_applications=update_applications         ;;
             c)  update_categories=update_categories             ;;
             h)  __dacti_help ; builtin exit 0                   ;;
@@ -914,7 +914,7 @@ __dacti_main()
     [[ $update_keywords == update_keywords ]] && __dacti_update_keywords
     [[ $quit == quit ]] && __dacti_status_code 0 "Quit: With these command line options: ${index_applications:+${index_applications/%/ }}${update_categories:+${update_categories/%/ }}${update_keywords}."
 
-    # Unset variables, we do not need anymore.
+    # Unset variables and functions, we do not need anymore.
     builtin unset -v \
         arg \
         args \
@@ -926,6 +926,7 @@ __dacti_main()
         update_applications \
         update_categories \
         update_keywords
+    builtin unset -f __dacti_set_args
 
     # Perform the main selection menu and handle selections.
     builtin declare -g selection=

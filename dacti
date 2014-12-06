@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.10" ; }
+__dacti_version() { echo "0.1.0.11" ; }
 
 __dacti_help()
 {
@@ -106,11 +106,11 @@ __dacti_bin_desc() { lsx ${PATH//:/ } | sort -r | uniq ; }
 
 __dacti_menu_cmd()
 {
-    if declare -f __dacti_menu_cmd_custom 1>/dev/null 2>&1
+    if builtin declare -f __dacti_menu_cmd_custom 1>/dev/null 2>&1
     then
         __dacti_menu_cmd_custom "${1:-${menu_0_prompt}}"
     else
-        dmenu -p "${1:-${menu_0_prompt}}"
+        command dmenu -p "${1:-${menu_0_prompt}}"
     fi
 }
 
@@ -120,25 +120,26 @@ __dacti_browse_log() { sort -rn "$DACTI_LOG_FILE" ; }
 
 __dacti_browse_categories()
 {
-    (($# == 0)) && return 1
+    (($# == 0)) && builtin return 1
 
-    declare \
-            selection=$1 \
-            parent=
+    builtin declare \
+        selection="$1" \
+        parent=
 
     # Update categories before, if wanted with ":u".
-    [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] &&
-    {
-        __dacti_update_categories && __dacti_set_log "Categories: Update has been processed."
+    [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && {
+        __dacti_update_categories
         selection=${selection#:* }
     }
 
     # Now handle the selection menu and perform selections.
-    read -r selection < <(find "$DACTI_CATS_DATA_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | __dacti_menu_cmd "CATEGORIES")
+    builtin read -r selection \
+        < <(command sort "$DACTI_CATS_MAIN_INFO_FILE" | __dacti_menu_cmd "CATEGORIES")
     parent=${DACTI_CATS_DATA_DIR##*/}/${selection}
     while [[ $selection ]]
     do
-        read -r selection < <({ printf '%s\n' '[..]' '[.]' ; find "${DACTI_CATS_DATA_DIR%/*}/${parent}" -mindepth 1 -maxdepth 1 -printf '%f\n' ; } | sort | __dacti_menu_cmd ${parent##*/})
+        builtin read -r selection \
+            < <({ builtin printf '%s\n' '[..]' '[.]' ; command find "${DACTI_CATS_DATA_DIR%/*}/${parent}" -mindepth 1 -maxdepth 1 -printf '%f\n' ; } | command sort | __dacti_menu_cmd ${parent##*/})
         case $selection in
             \[..\])     parent=${parent%/*}                           ;;
             \[.\])      parent=$parent                                ;;
@@ -597,20 +598,19 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
 
 __dacti_selection_0()
 {
-    declare \
-            apps_app= \
-            apps_file= \
-            apps_mode= \
-            apps_status=
+    builtin declare \
+        apps_app= \
+        apps_file= \
+        apps_mode= \
+        apps_status=
 
-    printf '[%s]\n' "${menu_0[@]}"
-    [[ $(stat -c %s "$DACTI_APPS_INDEX_FILE" 2>/dev/null) -ge 2 ]] &&
-    {
-        while read -r apps_status apps_mode apps_app apps_file
+    builtin printf '[%s]\n' "${menu_0[@]}"
+    [[ $(command stat -c %s "$DACTI_APPS_INDEX_FILE" 2>/dev/null) -ge 2 ]] && {
+        while builtin read -r apps_status apps_mode apps_app apps_file
         do
-            [[ $apps_status != block ]] && printf '%s\n' "$apps_app"
+            [[ $apps_status != block ]] && builtin printf '%s\n' "$apps_app"
         done < "$DACTI_APPS_INDEX_FILE"
-    } | sort | uniq
+    } | command sort -u
 }
 
 __dacti_comm()

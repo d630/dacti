@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.4" ; }
+__dacti_version() { echo "0.1.0.5" ; }
 
 __dacti_help()
 {
@@ -787,8 +787,6 @@ __dacti_logger()
     printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) event ${log_message}" 1>> "$DACTI_LOG_FILE"
 }
 
-# -- MAIN.
-
 
 __dacti_main()
 {
@@ -975,5 +973,7 @@ __dacti_main()
         esac
     done
 }
+
+# -- MAIN.
 
 __dacti_main "$@"

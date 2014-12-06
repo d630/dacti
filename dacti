@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.3" ; }
+__dacti_version() { echo "0.1.0.4" ; }
 
 __dacti_help()
 {
@@ -792,13 +792,12 @@ __dacti_logger()
 
 __dacti_main()
 {
-    # Prepare performing options from command line.
     builtin declare \
         arg= \
         args= \
         delim=\'
 
-    # Translate long options into short options.
+    # Translate long options on command line into short options.
     for arg
     do
         arg=${arg#--}
@@ -828,7 +827,7 @@ __dacti_main()
         update_categories= \
         update_keywords=
 
-    # Do getopts.
+    # Do getopts, do things with commandline arguments.
     builtin eval builtin set -- "$args"
     while builtin getopts :acC:hkpqv opt
     do
@@ -849,7 +848,7 @@ __dacti_main()
     done
     builtin shift $((OPTIND-1))
 
-    # Declare some enviroments, before we will source a Conf File.
+    # Declare some enviroments, before we will source a conf file.
     builtin declare \
         predir_datadir=${XDG_DATA_HOME:-${HOME}/.local/share} \
         predir_configdir=${XDG_CONFIG_HOME:-${HOME}/.config}
@@ -860,6 +859,7 @@ __dacti_main()
         term=
     builtin declare -ga "menu_0=()"
 
+    # Source conf file.
     if [[ -f $DACTI_CONF_FILE ]]
     then
         builtin source "$DACTI_CONF_FILE" 2>/dev/null || \
@@ -894,6 +894,7 @@ __dacti_main()
     builtin declare -gra "menu_0=(${menu_0[@]:-BIN-ASC BIN-ATIME-ASC BIN-ATIME-DESC BIN-DESC CATEGORIES KEYWORDS LOG OCCUR})"
     builtin declare -g invocation_mode=
 
+    # Check invocation mode.
     if command tty -s
     then
         invocation_mode=cli
@@ -908,7 +909,7 @@ __dacti_main()
     [[ -d $DACTI_DATA_DIR ]] || command mkdir -p "$DACTI_DATA_DIR"
     [[ -f $DACTI_APPS_INDEX_FILE ]] || 1> "$DACTI_APPS_INDEX_FILE"
 
-    # Perform options from command line.
+    # Perform options from commandline.
     [[ $update_applications == update_applications ]] && __dacti_update_applications
     [[ $update_categories == update_categories ]] && __dacti_update_categories
     [[ $update_keywords == update_keywords ]] && __dacti_update_keywords

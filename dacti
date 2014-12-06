@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.9" ; }
+__dacti_version() { echo "0.1.0.10" ; }
 
 __dacti_help()
 {
@@ -793,7 +793,7 @@ __dacti_set_status()
 
 __dacti_set_log()
 {
-    builtin declare log_message=$1
+    builtin declare log_message="$1"
     builtin printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) event ${log_message}" >> "$DACTI_LOG_FILE"
 }
 

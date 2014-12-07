@@ -1,12 +1,9 @@
-## A little tutorial to learn using dacti
-
-### Index
+## Short tutorial to learn using dacti
 
 1. [Default behavior](#default-behavior)
 2. [Modify launching in the input field](#modify-launching-in-the-input-field)
 3. [Handling multiple entries in a desktop file](#handling-multiple-entries-in-a-desktop-file)
 4. [Index all desktop entries](#index-all-desktop-entries)
-5. [Result](#result)
 
 ### Default behavior
 
@@ -234,33 +231,3 @@ To update them on the fly, select `[CATEGORIES]` or `[KEYWORDS]` and prefix it w
 ```bash
 :u [CATEGORIES]
 ```
-
-You may also query keywords with the command `:q`. Prefix the selection and then type your query (regextype: posix-egrep). Your regex `$i` needs to fit in following expression:
-
-```bash
-"^(.*):Keywords=.*${i};.*$"
-```
-
-```bash
-:uk [KEYWORDS]
-tar
-```
-
-Furthermore, you can use simple search operators: `and`, `or` and `not`.
-
-```bash
-:uk [KEYWORDS]
-tar and zip
-zip not tar
-```
-
-### Result
-
-`dacti`(1) is a simple `menu` driven bash shell script with interactive usage. You can use it in different ways:
-
-* index all desktop files on your system, create new one or modify the existing
-* only use local desktop files
-* always use the `:p` or `--pretend` command and do not use desktop files at all; use `dacti`(1) as simple launcher without managing
-
-Since all desktop files are plain text files, you can modify all keys and launching options like you want.
-

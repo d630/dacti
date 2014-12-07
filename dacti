@@ -34,11 +34,11 @@
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.0.13" ; }
+__dacti_version() { echo "0.1.1.0" ; }
 
 __dacti_help()
 {
-    printf '%s\n' 'dacti (-h|-v|) [-C] [-a|-c|-k|-q]
+    builtin printf '%s\n' 'dacti (-h|-v|) [-C] [-a|-c|-k|-q] [-p]
 
     Cli
       -a   --update-applications Index all desktop files.
@@ -214,50 +214,50 @@ __dacti_browse_keywords()
 
 __dacti_check_status()
 {
-    __dacti_do_win_sg() { wmctrl -i -a "${xids[0]}" ; }
+    __dacti_do_win_sg() { command wmctrl -i -a "${xids[0]}" ; }
 
     __dacti_do_win_pl()
     {
-        declare fail=
-
+        builtin declare fail=
         for i in "${xids[@]}"
         do
-            wmctrl -i -a "$i" || { launch_status=fail ; __dacti_set_log "Raising: Window ${i} of ${selection% *} has not raised." ; }
+            command wmctrl -i -a "$i" || \
+            { launch_status=fail ; __dacti_set_log "Raising: Window ${i} of ${selection% *} has not raised" ; }
         done
     }
 
     __dacti_check_wins()
     {
-        declare \
-                i= \
-                id= \
-                fail= \
-                net_client_list= \
-                net_wm_pid= \
-                pid=
+        builtin declare \
+            i= \
+            id= \
+            fail= \
+            net_client_list= \
+            net_wm_pid= \
+            pid=
 
-        declare -g startup_wmclass=
+        builtin declare -g startup_wmclass=
 
-        declare -a \
-                   pid_list=() \
-                   xids=()
+        builtin declare -a \
+            "pid_list=()" \
+            "xids=()"
 
-        read -r _ _ _ _ net_client_list < <(xprop -root _NET_CLIENT_LIST)
+        builtin read -r _ _ _ _ net_client_list < <(command xprop -root _NET_CLIENT_LIST)
 
         if [[ ${sections[${section_number} X_dacti_mode]} != gui ]]
         then
             # If application has the status "cli" or "tui", search the window id of its parent pid (a terminal).
-            for pid in $(pgrep -d ' ' "${selection% *}")
+            for pid in $(command pgrep -d ' ' "${selection% *}")
             do
                 until [[ ${pid// /} == 0 ]]
                 do
-                    pid=$(ps -p "${pid// /}" -o ppid= 2>/dev/null)
+                    pid=$(command ps -p "${pid// /}" -o ppid= 2>/dev/null)
                     pid_list+=(${pid// /})
                 done
             done
             for id in ${net_client_list//,/}
             do
-                read -r _ _ net_wm_pid < <(xprop -id "$id" _NET_WM_PID)
+                builtin read -r _ _ net_wm_pid < <(command xprop -id "$id" _NET_WM_PID)
                 for pid in "${pid_list[@]}"
                 do
                     [[ $net_wm_pid == $pid ]] && xids+=($id)
@@ -267,8 +267,8 @@ __dacti_check_status()
             # Just search the window id of the application itself (status=gui).
             for id in ${net_client_list//,/}
             do
-                [[ $(xprop -id "$id" WM_CLASS) =~ ${sections[${section_number} StartupWMClass]:-${selection% *}} ]] &&
-                xids+=($id) &&
+                [[ $(command xprop -id "$id" WM_CLASS) =~ ${sections[${section_number} StartupWMClass]:-${selection% *}} ]] && \
+                xids+=($id) && \
                 startup_wmclass=${BASH_REMATCH[0]}
             done
         fi
@@ -281,23 +281,23 @@ __dacti_check_status()
             1)
                     if [[ ${sections[${section_number} X_dacti_win_sg]} ]]
                     then
-                        eval "${sections[${section_number} X_dacti_win_sg]}"
+                        builtin eval "${sections[${section_number} X_dacti_win_sg]}"
                     else
-                        if declare -f __dacti_do_win_sg_custom 1>/dev/null 2>&1
+                        if builtin declare -f __dacti_do_win_sg_custom 1>/dev/null 2>&1
                         then
                             __dacti_do_win_sg_custom || fail=fail
                         else
                             __dacti_do_win_sg || fail=fail
                         fi
-                        [[ $fail == fail ]] && { launch_status=fail ; __dacti_set_log "Raising: Window of ${selection% *} has not raised." ; }
+                        [[ $fail == fail ]] && { launch_status=fail ; __dacti_set_log "Raising: Window of ${selection% *} has not raised" ; }
                     fi
                     ;;
             *)
                     if [[ ${sections[${section_number} X_dacti_win_pl]} ]]
                     then
-                        eval "${sections[${section_number} X_dacti_win_pl]}"
+                        builtin eval "${sections[${section_number} X_dacti_win_pl]}"
                     else
-                        if declare -f __dacti_do_win_pl_custom 1>/dev/null 2>&1
+                        if builtin declare -f __dacti_do_win_pl_custom 1>/dev/null 2>&1
                         then
                             __dacti_do_win_pl_custom
                         else
@@ -318,41 +318,38 @@ __dacti_check_status()
             # Check, if selected command needs to have a terminal; relative to the invocation mode and option ":n".
             if [[ ${sections[${section_number} Terminal]} =~ (1|true|yes) && ( ${sections[${section_number} X_dacti_new_term]} =~ (1|true|yes) || $invocation_mode == gui ) ]]
             then
-                (exec ${term} -e "$selection;${SHELL:-bash}" 2>/dev/null &)
+                (builtin exec ${term} -e "$selection;${SHELL:-bash}" 2>/dev/null &)
             else
-                (exec ${selection} 2>/dev/null &)
+                (builtin exec ${selection} 2>/dev/null &)
             fi
         else
             launch_status=fail
-            __dacti_set_log "Execution: Command ${selection% *} is unknown."
-            return 1
+            __dacti_set_log "Execution: Command ${selection% *} is unknown"
+            builtin return 1
         fi
     }
 
     __dacti_build_new_file()
     {
-        declare \
-                action_name= \
-                Actions= \
-                key= \
-                val=
+        builtin declare \
+            action_name= \
+            Actions= \
+            key= \
+            val=
 
         if [[ -f ${xdg_applications_home}/${selection% *}.desktop ]]
         then
             # If a desktop file has already been created in "${xdg_applications_home}", then its desktop file needs to be updated. We insert then a new application section/group.
             name=$(__dacti_menu_cmd "Give a name" <<< "${selection% *}")
-            [[ ! $name ]] && { __dacti_set_log "File creation: aborted." ; return 1 ; }
-
+            [[ ! $name ]] && { __dacti_set_log "File creation: aborted" ; builtin return 1 ; }
             action_name=${selection% *}_${RANDOM}
-            while IFS='=' read -r key val
+            while IFS='=' builtin read -r key val
             do
-                [[ $key == Actions ]] && Actions=$val && break
+                [[ $key == Actions ]] && Actions=$val && builtin break
             done < "${xdg_applications_home}/${selection% *}.desktop"
             Actions=${Actions:+${Actions%%;}\;}${action_name}\;
-
-            sed -i -e "s/^\(Actions=\).*$/\1${Actions}/" "${xdg_applications_home}/${selection% *}.desktop"
-
-            printf '%s\n' "
+            command sed -i -e "s/^\(Actions=\).*$/\1${Actions}/" "${xdg_applications_home}/${selection% *}.desktop"
+            builtin printf '%s\n' "
 [Desktop Action ${action_name}]
 Exec=${selection}
 Name=${name:-${selection% *}}
@@ -362,22 +359,19 @@ X-dacti_mode=${sections[${section_number} X_dacti_mode]}
 X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
 X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
-X-dacti_win_sg=" 1>> "${xdg_applications_home}/${selection% *}.desktop"
-
+X-dacti_win_sg=" >> "${xdg_applications_home}/${selection% *}.desktop"
             # Index file?
-            if egrep -q -e "(.*) (.*) ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" "$DACTI_APPS_INDEX_FILE"
+            if command egrep -q -e "(.*) (.*) ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" "$DACTI_APPS_INDEX_FILE"
             then
-                __dacti_set_log "File creation: File has already been indexed."
+                __dacti_set_log "File creation: File has already been indexed"
             else
-                printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" 1>> "$DACTI_APPS_INDEX_FILE"
+                builtin printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" >> "$DACTI_APPS_INDEX_FILE"
             fi
-
-            __dacti_set_log "${selection% *}: An already existed Desktop File has been updated."
+            __dacti_set_log "${selection% *}: An already existed Desktop File has been updated"
         else
             # Create new desktop file with all official keys + dactis own keys.
-            printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" 1>> "$DACTI_APPS_INDEX_FILE"
-
-            printf '%s\n' "[Desktop Entry]
+            builtin printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" >> "$DACTI_APPS_INDEX_FILE"
+            builtin printf '%s\n' "[Desktop Entry]
 Actions=
 Categories=
 Comment=
@@ -406,65 +400,56 @@ X-dacti_mode=${sections[${section_number} X_dacti_mode]}
 X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
 X-dacti_status=${sections[${section_number} X_dacti_status]}
 X-dacti_win_pl=
-X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
-
-            chmod 755 "${xdg_applications_home}/${selection% *}.desktop"
-
-            __dacti_set_log "${selection% *}: New Desktop File has been created."
+X-dacti_win_sg=" > "${xdg_applications_home}/${selection% *}.desktop"
+            command chmod 755 "${xdg_applications_home}/${selection% *}.desktop"
+            __dacti_set_log "${selection% *}: New Desktop File has been created"
         fi
     }
 
-    (($# == 0)) && return 1
+    (($# == 0)) && builtin return 1
 
-    declare \
-            apps_app= \
-            apps_file= \
-            apps_mode= \
-            apps_status= \
-            build_new_file= \
-            key= \
-            launch_status= \
-            mode= \
-            new_terminal= \
-            pretend=${pretend} \
-            section_number=0 \
-            selec= \
-            selection=$@ \
-            status= \
-            terminal= \
-            val=
+    builtin declare \
+        apps_app= \
+        apps_file= \
+        apps_mode= \
+        apps_status= \
+        build_new_file= \
+        key= \
+        launch_status= \
+        mode= \
+        new_terminal= \
+        pretend=$pretend \
+        section_number=0 \
+        selec= \
+        selection="$@" \
+        status= \
+        terminal= \
+        val=
 
-    declare -A sections
+    builtin declare -A sections
 
     # Check, if selected application has been invoked with options (:bcinprtu).
-    case $selection in
-        "")
-                return 1
-                ;;
-        :*)
-                [[ ${selection%% *} =~ ^:.*b.*$ ]] && status=block
-                [[ ${selection%% *} =~ ^:.*c.*$ ]] && terminal=true && mode=cli
-                [[ ${selection%% *} =~ ^:.*i.*$ ]] && status=ign
-                [[ ${selection%% *} =~ ^:.*n.*$ ]] && new_terminal=true
-                [[ ${selection%% *} =~ ^:.*p.*$ ]] && pretend=pretend
-                [[ ${selection%% *} =~ ^:.*t.*$ ]] && terminal=true && mode=tui
-                [[ ${selection%% *} =~ ^:.*u.*$ ]] && build_new_file=build_new_file
-                selection=${selection#:* }
-                ;;
-    esac
+    [[ $selection == :* ]] && {
+        [[ ${selection%% *} =~ ^:.*b.*$ ]] && status=block
+        [[ ${selection%% *} =~ ^:.*c.*$ ]] && terminal=true && mode=cli
+        [[ ${selection%% *} =~ ^:.*i.*$ ]] && status=ign
+        [[ ${selection%% *} =~ ^:.*n.*$ ]] && new_terminal=true
+        [[ ${selection%% *} =~ ^:.*p.*$ ]] && pretend=pretend
+        [[ ${selection%% *} =~ ^:.*t.*$ ]] && terminal=true && mode=tui
+        [[ ${selection%% *} =~ ^:.*u.*$ ]] && build_new_file=build_new_file
+        selection=${selection#:* }
+    }
 
     # If option ":p" and ":u" have not been set, then we will look for the application in the application index file and declare some variables.
-    [[ $pretend != pretend && $build_new_file != build_new_file ]] &&
-    {
+    [[ $pretend != pretend && $build_new_file != build_new_file ]] && {
         #status=reg
         #terminal=
         #new_terminal=
 
-        while read -r apps_status apps_mode apps_app apps_file
+        while builtin read -r apps_status apps_mode apps_app apps_file
         do
-            [[ $apps_app == ${selection% *} && -f $apps_file ]] &&
-            {
-                while IFS='=' read -r key val
+            [[ $apps_app == ${selection% *} && -f $apps_file ]] && {
+                while IFS='=' builtin read -r key val
                 do
                     if [[ $key =~ ^\[.*\]$ ]]
                     then
@@ -483,12 +468,16 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
                     build_new_file=build_new_file
                     ;;
             [^1])
-                    read -r -d ']' section_number <<< "$(for ((i=1 ; i <= ${section_number[@]} ; i++)); do printf '[%s] [%s] [%s] $ %s\n' "$i" "${sections[${i} X_dacti_status]};${sections[${i} X_dacti_mode]};${sections[${i} X_dacti_new_term]}" "${sections[${i} Name]}" "${sections[${i} Exec]}"; done | __dacti_menu_cmd "SELECTION")"
+                    builtin read -r -d ']' section_number \
+                        <<< "$(\
+                            for ((i=1 ; i <= ${section_number[@]} ; i++))
+                            do
+                                builtin printf '[%s] [%s] [%s] $ %s\n' "$i" "${sections[${i} X_dacti_status]};${sections[${i} X_dacti_mode]};${sections[${i} X_dacti_new_term]}" "${sections[${i} Name]}" "${sections[${i} Exec]}"
+                            done | __dacti_menu_cmd "SELECTION")"
                     section_number=${section_number/\[/}
-
-                    [[ ! $section_number ]] &&
-                    {
-                        read -r -d ']' selec < <(printf '%s\n' '[1] return' "[2] Exec: $ ${selection}" "[3] Set options and exec: $ ${selection}" "[4] Edit command and set options." | __dacti_menu_cmd "SELECTION")
+                    [[ ! $section_number ]] && {
+                        builtin read -r -d ']' selec \
+                            < <(builtin printf '%s\n' '[1] return' "[2] Exec: $ ${selection}" "[3] Set options and exec: $ ${selection}" "[4] Edit command and set options." | __dacti_menu_cmd "SELECTION")
                         case ${selec/\[/} in
                             4)
                                     selection=$(__dacti_menu_cmd "COMMAND" <<< "$selection")
@@ -501,13 +490,13 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
                                     [[ ${selec%% *} =~ ^:.*n.*$ ]] && new_terminal=true
                                     [[ ${selec%% *} =~ ^:.*t.*$ ]] && terminal=true && mode=tui
                                     [[ ${selec%% *} =~ ^:.*u.*$ ]] && build_new_file=build_new_file
-                                    [[ ! $selection ]] && return 1
+                                    [[ ! $selection ]] && builtin return 1
                                     ;&
                             2)
                                     section_number=0
                                     ;;
                             *)
-                                    return 1
+                                    builtin return 1
                                     ;;
                         esac
                     }
@@ -525,20 +514,30 @@ X-dacti_win_sg=" 1> "${xdg_applications_home}/${selection% *}.desktop"
 
     # Check the status of the application.
     case ${sections[${section_number} X_dacti_status]} in
-        block)      [[ ! $build_new_file ]] && __dacti_set_log "${selection% *}: block status true." && return 1 ;;
-        ign)        __dacti_set_log "${selection% *}: ign status true." && __dacti_exec_selection ;;
-        reg)        __dacti_check_wins ;;
-        *)          __dacti_set_status 1 "Quit: Status ${status} is unknown."
+        block)
+            [[ ! $build_new_file ]] && \
+            __dacti_set_log "${selection% *}: block status true" && \
+            builtin return 1
+            ;;
+        ign)
+            __dacti_set_log "${selection% *}: ign status true" && \
+            __dacti_exec_selection
+            ;;
+        reg)
+            __dacti_check_wins
+            ;;
+        *)
+            __dacti_set_status 1 "Quit: Status ${status} is unknown"
     esac
 
     if [[ $launch_status == fail ]]
     then
-        __dacti_set_status 1 "Quit: Launch has failed."
+        __dacti_set_status 1 "Quit: Launch has failed"
     else
         # Create new desktop file, if invoked with ":u" or if there is no entry in the index file.
         [[ $build_new_file ]] && __dacti_build_new_file
-        printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) launch ${selection% *}" 1>> "$DACTI_LOG_FILE"
-        __dacti_set_status 0 "Quit: Execution has finished."
+        builtin printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) launch ${selection% *}" >> "$DACTI_LOG_FILE"
+        __dacti_set_status 0 "Quit: Execution has finished"
     fi
 }
 

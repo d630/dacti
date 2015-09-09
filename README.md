@@ -4,7 +4,7 @@
 
 I use dacti, because I want to have a DE indepent launcher in addtion to my shell in the terminal (keyboard driven and without much graphical stuff).
 
-![]https://raw.githubusercontent.com/D630/dacti/master/doc/dacti.png
+![](https://raw.githubusercontent.com/D630/dacti/master/doc/dacti.png)
 
 (Terminus 18)
 

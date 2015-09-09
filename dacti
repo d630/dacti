@@ -348,7 +348,7 @@ Main selection menu: entries
                                         access times
         <COMMAND>                       Launch application (run or raise)
 
-Main selecton menu: command prefixes
+Main selecton menu: modifiers
         :c                              Declare mode 'cli'
         :i                              Declare status 'ign'
         :k                              Keep the process. Wait for a key press

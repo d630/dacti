@@ -104,6 +104,8 @@ A record looks like:
 
 reg gui Chromium chromium
 ign gui XTerm xterm
+reg tui:n - htop
+reg cli:nk - locate
 ```
 
 With a status `ign`, a command is not allowed to raise an existing window. `block` stops raising and running as well.

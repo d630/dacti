@@ -95,22 +95,22 @@ functions
 
 ###### Index File
 
-Without any command prefixes a record would get the status `reg` and the mode `gui` per default (the command has a gui and may run OR raise).
+Without command modifiers, a record would get the status `reg` and the mode `gui` per default (the command has a gui and may run OR raise).
 
 A record looks like:
 
 ```
-# STATUS MODE[:PREFIXES] CLASS COMMAND
+# STATUS MODE[:MODIFIERS] CLASS COMMAND
 
 reg gui Chromium chromium
 ign gui XTerm xterm
 reg tui:n - htop
-reg cli:nk - locate
+reg cli:nk - find
 ```
 
 With a status `ign`, a command is not allowed to raise an existing window. `block` stops raising and running as well.
 
-If a command has more than one record, the last entry is gonna used.
+If a command has more than one record, the last entry is going to be used.
 
 ##### NOTICE
 

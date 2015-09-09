@@ -40,61 +40,19 @@ function Dacti::ExecApp
 if
         command -v "${command[0]}" 1>/dev/null 2>&1
 then
-        if
-                [[
-                        ${App[nterminal]} -eq 1 ||
-                        $invocation_mode == gui
-                ]]
-        then
-                if
-                        (( ${App[background]} == 1 ))
-                then
-                        if
-                                (( ${App[keep]} == 1 ))
-                        then
-                                ( builtin eval ${term} -e "${command[*]}\;${SHELL:-sh}" \& )
-                        else
-                                ( builtin eval ${term} -e "${command[*]}\;" \& )
-                        fi
-                else
-                        if
-                                (( ${App[keep]} == 1 ))
-                        then
-                                builtin eval ${term} -e "${command[*]}\;${SHELL:-sh}"
-                        else
-                                builtin eval ${term} -e "${command[*]}\;"
-                        fi
-                fi
-        else
-                if
-                        (( ${App[background]} == 1 ))
-                then
-                        ( builtin eval ${SHELL:-sh} "-c ${command[*]}" \& )
-                else
-                        if
-                                (( ${App[keep]} == 1 ))
-                        then
-                                builtin eval ${SHELL:-sh} "-c ${command[*]}" \; command printf '%s\\n' \'Press ENTER to continue\' ; builtin read
-                        else
-                                builtin eval ${SHELL:-sh} "-c ${command[*]}"
-                        fi
-                fi
-        fi
-
-        return 1
-
-        if
-                (( ${App[terminal]} == 1 )) &&
-                (( ${App[nterminal]} == 1 )) ||
-                [[ $invocation_mode == gui ]]
-        then
-                (
-                        2>/dev/null \
-                        builtin exec ${term} -e "${command[*]};${SHELL:-sh}" &
-                )
-        else
-                ( builtin exec ${command[*]} 2>/dev/null & )
-        fi
+        case ${App[nterminal]}${App[keep]} in
+        11)
+                ( builtin exec ${term} -e "${SHELL:-sh}" -c "${command[*]};${SHELL:-sh}" & )
+        ;;
+        10)
+                ( builtin exec ${term} -e "${SHELL:-sh}" -c "${command[*]}" & )
+        ;;
+        01)
+                builtin exec ${SHELL:-sh} -c "${command[*]} ; command printf '%s\n' 'Press ENTER to continue' ; builtin read"
+        ;;
+        00)
+                ( builtin exec ${command[*]} & )
+        esac
 else
         launch_status=fail
 fi
@@ -153,7 +111,7 @@ then
         invocation_mode=gui
 else
         builtin printf '%s\n' "Error: Could not determine invocation mode" 1>&2
-        builtin return 1
+        builtin exit 1
 fi
 
 builtin typeset -r \
@@ -228,6 +186,7 @@ do
         ;;
         *)
                 Dacti::ParseSelection "$selection"
+                (( $? == 0 )) || builtin break
         esac
 done
 
@@ -242,7 +201,6 @@ function Dacti::ParseSelection
                 pref_mode ;
 
         builtin typeset -i \
-                pref_background= \
                 pref_keep= \
                 pref_nterminal= \
                 pref_pretend=$DACTI_PRETEND \
@@ -259,16 +217,9 @@ function Dacti::ParseSelection
                         builtin read -r -n 1
                 do
                         case $REPLY in
-                        b)
-                                pref_background=1
-                                opts+=b
-                        ;;
                         k)
                                 pref_keep=1
                                 opts+=k
-                        ;;
-                        l)
-                                pref_status=block
                         ;;
                         c)
                                 #pref_terminal=1
@@ -321,9 +272,6 @@ function Dacti::ParseSelection
                                         builtin read -r -n 1
                                 do
                                         case $REPLY in
-                                        b)
-                                                pref_background=1
-                                        ;;
                                         k)
                                                 pref_keep=1
                                         ;;
@@ -339,7 +287,6 @@ function Dacti::ParseSelection
 
         App[status]=${pref_status:-${App[idx_status]}}
         App[status]=${App[status]:-reg}
-        App[background]=$pref_background
         App[keep]=$pref_keep
         #App[terminal]=$pref_terminal
         App[nterminal]=$pref_nterminal
@@ -398,12 +345,10 @@ Main selection menu: entries
         <COMMAND>                       Launch application (run or raise)
 
 Main selecton menu: command prefixes
-        :b                              Execute COMMAND in background
         :c                              Declare mode 'cli'
         :i                              Declare status 'ign'
         :k                              Keep the process. Wait for a key press
                                         or spawn a new shell instance
-        :l                              Declare status 'block'
         :n                              Run COMMAND in a new terminal emulator
                                         window
         :p                              Don't check, wheater COMMAND is indexed.
@@ -587,3 +532,4 @@ function Dacti::RaiseAppSg
 # -- MAIN.
 
 Dacti::Main "$@"
+

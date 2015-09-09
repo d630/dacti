@@ -55,12 +55,10 @@ Main selection menu: entries
         <COMMAND>                       Launch application (run or raise)
 
 Main selecton menu: command prefixes
-        :b                              Execute COMMAND in background
         :c                              Declare mode 'cli'
         :i                              Declare status 'ign'
         :k                              Keep the process. Wait for a key press
                                         or spawn a new shell instance
-        :l                              Declare status 'block'
         :n                              Run COMMAND in a new terminal emulator
                                         window
         :p                              Don't check, wheater COMMAND is indexed.

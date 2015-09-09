@@ -1,6 +1,6 @@
 ##### README
 
-[dacti] is a simple menu driven run or raise bash shell script. By default, dacti works with [dmenu]() and [wmctrl](), but you may use your preferred tools.
+[dacti](https://github.com/D630/dacti) is a simple menu driven run or raise bash shell script. By default, dacti works with [dmenu](http://tools.suckless.org/dmenu/) and [wmctrl](https://sites.google.com/site/tstyblo/wmctrl/), but you may [configure](../master/doc/examples/dactirc) and use your preferred tools.
 
 I use dacti, because I want to have a DE indepent launcher in addtion to my shell in the terminal (keyboard driven and without much graphical stuff).
 
@@ -92,6 +92,25 @@ functions
 ```
 
 ##### NOTICE
+
+dacti has been written in [GNU bash](http://www.gnu.org/software/bash/) on [Debian GNU/Linux 9 (stretch/sid)](https://www.debian.org) using these programs/packages:
+
+- GNU Bash 4.3.42(1)-release
+- GNU coreutils 8.23: cut, mkdir, printf, sort, tty, uniq
+- GNU findutils 4.4.2: find
+- GNU grep 2.21
+- procps 3.3.10: pgrep, ps
+- suckless-tools 40-1: dmenu, lsx
+- wmctrl 1.07-7
+- x11-utils 7.7+3: xprop 1.2.2
+
+dacti is not portable; it does not work in [ksh](http://www.kornshell.com/), [mksh](https://www.mirbsd.org/mksh.htm) or [zsh](http://www.zsh.org/). Your bash version needs to handle associative arrays.
+
+##### CREDITS
+
+dacti is a rewrite of acti (v0.8; GNU GPLv3) by D630.
+
+dacti is affected by Scott Garretts dmenu-launch (v0.5.7).
 
 ##### LICENCE
 

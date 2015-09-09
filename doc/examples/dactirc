@@ -2,7 +2,7 @@
 
 term=stt
 prompt=\>
-#DACTI_INDEX_FILE=
+DACTI_INDEX_FILE=${X_XDG_LIB_DIR}/dacti/dacti.index
 DACTI_PRETEND=0
 
 menu=(
@@ -28,7 +28,7 @@ function Dacti::CmdMenuCustom ()
     builtin typeset prompt="$1"
 
     case $invocation_mode in
-    cli | tui)
+    cli)
             command /usr/local/bin/slmenu -b -f -i \
                     -p "$prompt" \
                     -nb "#002b36" \
@@ -37,7 +37,7 @@ function Dacti::CmdMenuCustom ()
                     -sf "#2C2C2C" \
                     -uc "#2C2C2C" \
                     -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*" ;
-            ;;
+    ;;
     gui)
             command /usr/local/bin/dmenu2 -b -f -i \
                     -l "10" \
@@ -59,76 +59,81 @@ function Dacti::ParseSelectionCustom ()
 
         case ${selection,,} in
         z)
-                command z-fm.sh
+                builtin exec z-fm.sh
         ;;
         clip)
-                command clipbored.sh
+                builtin exec clipbored.sh
         ;;
         web)
                 if
                         [[ $invocation_mode == cli ]]
                 then
-                        command furlview.sh "${X_XDG_LOG_HOME}/urls.log"
+                        builtin exec furlview.sh "${X_XDG_LOG_HOME}/urls.log"
                 elif
                         [[ $invocation_mode == gui ]]
                 then
-                        command ${term} -name "furlview-xterm" -e "furlview.sh "${X_XDG_LOG_HOME}/urls.log";exit;bash"
+                        command xterm -name "furlview-xterm" -e "furlview.sh "${X_XDG_LOG_HOME}/urls.log";exit;bash"
+                        builtin exit 0
                 fi
         ;;
         radio)
-                command webradio.sh
+                builtin exec webradio.sh
         ;;
         file)
-                command special-files.sh
+                builtin exec special-files.sh
         ;;
         pw)
-                command pass-c.sh
+                builtin exec pass-c.sh
         ;;
         addresses)
                 if
                         [[ $invocation_mode == cli ]]
                 then
-                        command nottoomuch-wrapper.sh
+                        builtin exec nottoomuch-wrapper.sh
                 elif
                         [[ $invocation_mode == gui ]]
                 then
-                        command ${term} -e "nottoomuch-wrapper.sh;exit;bash" 2>/dev/null
+                        ( builtin exec ${term} -e "${SHELL:-sh}" -c nottoomuch-wrapper.sh 2>/dev/null & )
+                        builtin exit 0
                 fi
         ;;
         task-add)
                 if
                         [[ $invocation_mode == cli ]]
                 then
-                        command taskwarrior-add.sh
+                        builtin exec taskwarrior-add.sh
                 elif
                         [[ $invocation_mode == gui ]]
                 then
-                        command ${term} -e "taskwarrior-add.sh;exit;bash"
+                        ( builtin exec ${term} -e "${SHELL:-sh}" -c taskwarrior-add.sh 2>/dev/null & )
+                        builtin exit 0
                 fi
         ;;
         kuno)
                 if
                         [[ $invocation_mode == cli ]]
                 then
-                        command kuno.sh
+                        builtin exec kuno.sh
                 elif
                         [[ $invocation_mode == gui ]]
                 then
-                        command ${term} -e "kuno.sh;exit;bash"
+                        ( builtin exec ${term} -e "${SHELL:-sh}" -c kuno.sh 2>/dev/null & )
+                        builtin exit 0
                 fi
         ;;
         wecker)
-                command ${term} -e "wecker-gui.sh;bash"
+                builtin exec wecker-gui.sh
         ;;
         calc)
                 if
                         [[ $invocation_mode == cli ]]
                 then
-                        command calc.sh
+                        builtin exec calc.sh
                 elif
                         [[ $invocation_mode == gui ]]
                 then
-                        command ${term} -e "calc.sh;exit;bash"
+                        ( builtin exec ${term} -e "${SHELL:-sh}" -c calc.sh 2>/dev/null & )
+                        builtin exit 0
                 fi
         ;;
         *)
@@ -138,6 +143,8 @@ function Dacti::ParseSelectionCustom ()
 
 function Dacti::RaiseAppSgCustom ()
 {
+        ## dacti wants to raise an single window
+
         command wmctrl -i -a "${xids[0]}" || {
                 launch_status=fail
                 builtin return 1
@@ -146,6 +153,8 @@ function Dacti::RaiseAppSgCustom ()
 
 function Dacti::RaiseAppPlCustom ()
 {
+        ## dacti has detected at leat two windows to raise
+
         builtin typeset id
 
         for id

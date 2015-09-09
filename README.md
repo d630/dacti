@@ -95,7 +95,7 @@ functions
 
 ###### Index File
 
-Without command modifiers, a record would get the status `reg` and the mode `gui` per default (the command has a gui and may run OR raise).
+Without command modifiers, a record gets the status `reg` and the mode `gui` per default (the command has a gui and may run OR raise).
 
 A record looks like:
 

@@ -1,920 +1,589 @@
 #!/usr/bin/env bash
 
-# Copyright 2014 D630
+# Copyright 2014f. D630
 # https://github.com/D630/dacti
 
 # -- DEBUGGING.
 
 #printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
-#set -o xtrace #; exec 2>> ~/dacti.log
-#set -o verbose
-#set -o noexec
 #set -o errexit
+#set -o errtrace
+#set -o noexec
 #set -o nounset
 #set -o pipefail
+#set -o verbose
+#set -o xtrace
 #trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
-
-# -- SETTINGS.
-
-#declare vars_base=$(set -o posix ; set)
+#exec 2>> ~/dacti.log
+#typeset vars_base=$(set -o posix ; set)
+#fgrep -v -e "$vars_base" < <(set -o posix ; set) | \
+#egrep -v -e "^BASH_REMATCH=" \
+#         -e "^OPTIND=" \
+#         -e "^REPLY=" \
+#         -e "^BASH_LINENO=" \
+#         -e "^BASH_SOURCE=" \
+#         -e "^FUNCNAME=" | \
+#less
 
 # -- FUNCTIONS.
 
-__dacti_version() { echo "0.1.1.0" ; }
-
-__dacti_help()
+function Dacti::Init
 {
-    builtin printf '%s\n' 'dacti (-h|-v|) [-C] [-a|-c|-k|-q] [-p]
-
-    Cli
-      -a   --update-applications Index all desktop files.
-      -C,  --conf-file=<FILE>    Source a file as conf file.
-      -c,  --update-categories   Index all categories.
-      -h,  --help
-      -k,  --update-keywords     Index all keywords.
-      -p,  --pretend             Like ":p". Pretend indexing and building
-                                 of desktop files.
-      -q,  --quit                Quit before performing the main
-                                 selection menu.
-      -v,  --version
-
-    Main selection menu
-      [BIN-ASC]                  Browse all binaries inside the enviroment
-                                 variable <PATH> in a selection menu. Sort
-                                 them in ascending order by its names.
-      [BIN-DESC]                 Browse all binaries inside the enviroment
-                                 variable <PATH> in a selection menu. Sort
-                                 them in descending order by its names.
-      [BIN-ATIME-ASC]            Browse all binaries inside the enviroment
-                                 variable <PATH> in a selection menu. Sort
-                                 them in ascending order by its access time.
-      [BIN-ATIME-DESC]           Browse all binaries inside the enviroment
-                                 variable <PATH> in a selection menu. Sort
-                                 them in descending order by its access
-                                 time.
-      [CATEGORIES]               Browse all categories in a selection menu
-                                 and select associated desktop files.
-        :u [CATEGORIES]          Update the category index before.
-      [KEYWORDS]                 Browse keywords in a selection menu and
-                                 select associated desktop files.
-        :u [KEYWORDS]            Update the keyword index before.
-      [LOG]                      Browse all log entries of dacti in a
-                                 selection menu. Start applications from
-                                 it by selecting
-                                 entries with the event "launch".
-      [OCCUR]                    Browse applications by its occurence
-                                 based on the log file.
-
-    Application
-      <APP>                      Launch application.
-        :b <APP>                 Declare status "block".
-        :c <APP>                 App has a cli and needs a terminal (mode=cli).
-        :i <APP>                 Declare status "ign".
-        :n <APP>                 App should start in a new terminal instance.
-        :p <APP>                 Dont check, if app is indexed. Launch it
-                                 directly and create no new desktop file.
-        :t <APP>                 Apps has a tui and needs a terminal (mode=tui).
-        :u <APP>                 Dont check, if app is indexed. Launch it
-                                 directly and create a new desktop file or
-                                 entry.
-'
-}
-
-__dacti_bin_asc() { command lsx ${PATH//:/ } | command sort -u ; }
-
-__dacti_bin_atime_asc()
-{
-    command find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' | \
-    command sort -n | \
-    command cut -f2 | \
-    command fgrep -xf <(command lsx ${PATH//:/ }) | \
-    command uniq
-}
-
-__dacti_bin_atime_desc()
-{
-    command find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' | \
-    command sort -rn | \
-    command cut -f2 | \
-    command fgrep -xf <(command lsx ${PATH//:/ }) | \
-    command uniq
-}
-
-__dacti_bin_desc() { command lsx ${PATH//:/ } | command sort -ru ; }
-
-__dacti_menu_cmd()
-{
-    if builtin declare -f __dacti_menu_cmd_custom 1>/dev/null 2>&1
-    then
-        __dacti_menu_cmd_custom "${1:-${menu_0_prompt}}"
-    else
-        command dmenu -p "${1:-${menu_0_prompt}}"
-    fi
-}
-
-__dacti_occur()
-{
-    command grep -e '^.* launch .*$' "$DACTI_LOG_FILE" | \
-    command cut -d ' ' -f3 | \
-    command sort | \
-    command uniq -c | \
-    command sort -nr
-}
-
-__dacti_browse_log() { command sort -rn "$DACTI_LOG_FILE" ; }
-
-__dacti_browse_categories()
-{
-    (($# == 0)) && builtin return 1
-
-    builtin declare \
-        parent= \
-        selection="$1"
-
-    # Update categories before, if wanted with ":u".
-    [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && {
-        __dacti_update_categories
-        selection=${selection#:* }
-    }
-
-    # Now handle the selection menu and perform selections.
-    builtin read -r selection \
-        < <(command sort "$DACTI_CATS_MAIN_INFO_FILE" | __dacti_menu_cmd "CATEGORIES")
-    parent=${DACTI_CATS_DATA_DIR##*/}/${selection}
-    while [[ $selection ]]
-    do
-        builtin read -r selection < <( {
-                     builtin printf '%s\n' '[..]' '[.]'
-                     command find "${DACTI_CATS_DATA_DIR%/*}/${parent}" -mindepth 1 -maxdepth 1 ! -name '.dummy' -printf '%f\n'
-                 } | command sort | __dacti_menu_cmd ${parent##*/})
-        case $selection in
-            \[..\])     parent=${parent%/*}                           ;;
-            \[.\])      parent=$parent                                ;;
-            *.desktop)  __dacti_check_status "${selection%.desktop}"  ;;
-            *)          parent=${parent}/${selection}                 ;;
-        esac
-    done
-}
-
-__dacti_browse_keywords()
-{
-    (($# == 0)) && builtin return 1
-
-    builtin declare \
-        file= \
-        keywords= \
-        parent= \
-        selection="$1"
-
-    # If wanted with ":u", update keywords before.
-    [[ $selection =~ ^:.*u.*[[:space:]].*$ ]] && {
-        __dacti_update_keywords
-        selection=${selection#:* }
-    }
-
-    # Now handle the selection menu and perform selections.
-    builtin read -r selection \
-        < <(__dacti_menu_cmd "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")
-    while [[ $selection ]]
-    do
-        parent=$selection
-        builtin read -r selection < <( {
-                    builtin printf '%s\n' '[..]' '[.]'
-                    command grep -e "^.*:Keywords=.*${selection};.*$" "$DACTI_KEYWS_INDEX_FILE" | \
-                    command sed -r -e 's/:Keywords=.*//' -e 's/(.*)\/([^\/]*)$/\2/'
-                 } | __dacti_menu_cmd "$parent")
-
-        case $selection in
-            \[.\])
-                selection=$parent
-                ;;
-            \[..\])
-                builtin read -r selection < <(__dacti_menu_cmd "KEYWORDS" < "$DACTI_KEYWS_CACHE_FILE")
-                ;;
-            *)
-                __dacti_check_status "${selection%.desktop}"
-                ;;
-        esac
-    done
-}
-
-__dacti_check_status()
-{
-    __dacti_do_win_sg() { command wmctrl -i -a "${xids[0]}" ; }
-
-    __dacti_do_win_pl()
-    {
-        builtin declare fail=
-        for i in "${xids[@]}"
-        do
-            command wmctrl -i -a "$i" || \
-            { launch_status=fail ; __dacti_set_log "Raising: Window ${i} of ${selection% *} has not raised" ; }
-        done
-    }
-
-    __dacti_check_wins()
-    {
-        builtin declare \
-            i= \
-            id= \
-            fail= \
-            net_client_list= \
-            net_wm_pid= \
-            pid=
-
-        builtin declare -g startup_wmclass=
-
-        builtin declare -a \
-            "pid_list=()" \
-            "xids=()"
-
-        builtin read -r _ _ _ _ net_client_list < <(command xprop -root _NET_CLIENT_LIST)
-
-        if [[ ${sections[${section_number} X_dacti_mode]} != gui ]]
-        then
-            # If application has the status "cli" or "tui", search the window id of its parent pid (a terminal).
-            for pid in $(command pgrep -d ' ' "${selection% *}")
-            do
-                until [[ ${pid// /} == 0 ]]
-                do
-                    pid=$(command ps -p "${pid// /}" -o ppid= 2>/dev/null)
-                    pid_list+=(${pid// /})
-                done
-            done
-            for id in ${net_client_list//,/}
-            do
-                builtin read -r _ _ net_wm_pid < <(command xprop -id "$id" _NET_WM_PID)
-                for pid in "${pid_list[@]}"
-                do
-                    [[ $net_wm_pid == $pid ]] && xids+=($id)
-                done
-            done
-        else
-            # Just search the window id of the application itself (status=gui).
-            for id in ${net_client_list//,/}
-            do
-                [[ $(command xprop -id "$id" WM_CLASS) =~ ${sections[${section_number} StartupWMClass]:-${selection% *}} ]] && \
-                xids+=($id) && \
-                startup_wmclass=${BASH_REMATCH[0]}
-            done
-        fi
-
-        # Now we decide, what to do relative to the number of collected window ids.
-        case ${#xids[@]} in
-            0)
-                    __dacti_exec_selection
-                    ;;
-            1)
-                    if [[ ${sections[${section_number} X_dacti_win_sg]} ]]
-                    then
-                        builtin eval "${sections[${section_number} X_dacti_win_sg]}"
-                    else
-                        if builtin declare -f __dacti_do_win_sg_custom 1>/dev/null 2>&1
-                        then
-                            __dacti_do_win_sg_custom || fail=fail
-                        else
-                            __dacti_do_win_sg || fail=fail
-                        fi
-                        [[ $fail == fail ]] && { launch_status=fail ; __dacti_set_log "Raising: Window of ${selection% *} has not raised" ; }
-                    fi
-                    ;;
-            *)
-                    if [[ ${sections[${section_number} X_dacti_win_pl]} ]]
-                    then
-                        builtin eval "${sections[${section_number} X_dacti_win_pl]}"
-                    else
-                        if builtin declare -f __dacti_do_win_pl_custom 1>/dev/null 2>&1
-                        then
-                            __dacti_do_win_pl_custom
-                        else
-                            __dacti_do_win_pl
-                        fi
-                    fi
-                    ;;
-        esac
-    }
-
-    __dacti_exec_selection()
-    {
-        # Check, if selected command, exists.
-        if command -v "${selection% *}" 1>/dev/null 2>&1
-        then
-            selection=${sections[${section_number} Exec]:-$selection}
-
-            # Check, if selected command needs to have a terminal; relative to the invocation mode and option ":n".
-            if [[ ${sections[${section_number} Terminal]} =~ (1|true|yes) && ( ${sections[${section_number} X_dacti_new_term]} =~ (1|true|yes) || $invocation_mode == gui ) ]]
-            then
-                (builtin exec ${term} -e "$selection;${SHELL:-bash}" 2>/dev/null &)
-            else
-                (builtin exec ${selection} 2>/dev/null &)
-            fi
-        else
-            launch_status=fail
-            __dacti_set_log "Execution: Command ${selection% *} is unknown"
-            builtin return 1
-        fi
-    }
-
-    __dacti_build_new_file()
-    {
-        builtin declare \
-            action_name= \
-            Actions= \
-            key= \
-            val=
-
-        if [[ -f ${xdg_applications_home}/${selection% *}.desktop ]]
-        then
-            # If a desktop file has already been created in "${xdg_applications_home}", then its desktop file needs to be updated. We insert then a new application section/group.
-            name=$(__dacti_menu_cmd "Give a name" <<< "${selection% *}")
-            [[ ! $name ]] && { __dacti_set_log "File creation: aborted" ; builtin return 1 ; }
-            action_name=${selection% *}_${RANDOM}
-            while IFS='=' builtin read -r key val
-            do
-                [[ $key == Actions ]] && Actions=$val && builtin break
-            done < "${xdg_applications_home}/${selection% *}.desktop"
-            Actions=${Actions:+${Actions%%;}\;}${action_name}\;
-            command sed -i -e "s/^\(Actions=\).*$/\1${Actions}/" "${xdg_applications_home}/${selection% *}.desktop"
-            builtin printf '%s\n' "
-[Desktop Action ${action_name}]
-Exec=${selection}
-Name=${name:-${selection% *}}
-StartupWMClass=$startup_wmclass
-Terminal=${sections[${section_number} Terminal]}
-X-dacti_mode=${sections[${section_number} X_dacti_mode]}
-X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
-X-dacti_status=${sections[${section_number} X_dacti_status]}
-X-dacti_win_pl=
-X-dacti_win_sg=" >> "${xdg_applications_home}/${selection% *}.desktop"
-            # Index file?
-            if command egrep -q -e "(.*) (.*) ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" "$DACTI_APPS_INDEX_FILE"
-            then
-                __dacti_set_log "File creation: File has already been indexed"
-            else
-                builtin printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" >> "$DACTI_APPS_INDEX_FILE"
-            fi
-            __dacti_set_log "${selection% *}: An already existed Desktop File has been updated"
-        else
-            # Create new desktop file with all official keys + dactis own keys.
-            builtin printf '%s\n' "${sections[${section_number} X_dacti_status]} ${sections[${section_number} X_dacti_mode]} ${selection% *} ${xdg_applications_home}/${selection% *}.desktop" >> "$DACTI_APPS_INDEX_FILE"
-            builtin printf '%s\n' "[Desktop Entry]
-Actions=
-Categories=
-Comment=
-DBusActivatable=
-DocPath=
-Exec=$selection
-GenericName=
-Hidden=
-Icon=
-InitialPreference=
-Keywords=
-MimeType=
-Name=${selection% *}
-NoDisplay=
-NotShowIn=
-OnlyShowIn=
-Path=
-ServiceTypes=
-StartupNotify=
-StartupWMClass=$startup_wmclass
-Terminal=${sections[${section_number} Terminal]}
-TryExec=
-Type=Application
-Version=1.1
-X-dacti_mode=${sections[${section_number} X_dacti_mode]}
-X-dacti_new_term=${sections[${section_number} X_dacti_new_term]}
-X-dacti_status=${sections[${section_number} X_dacti_status]}
-X-dacti_win_pl=
-X-dacti_win_sg=" > "${xdg_applications_home}/${selection% *}.desktop"
-            command chmod 755 "${xdg_applications_home}/${selection% *}.desktop"
-            __dacti_set_log "${selection% *}: New Desktop File has been created"
-        fi
-    }
-
-    (($# == 0)) && builtin return 1
-
-    builtin declare \
-        apps_app= \
-        apps_file= \
-        apps_mode= \
-        apps_status= \
-        build_new_file= \
-        key= \
-        launch_status= \
-        mode= \
-        new_terminal= \
-        pretend=$pretend \
-        section_number=0 \
-        selec= \
-        selection="$@" \
-        status= \
-        terminal= \
-        val=
-
-    builtin declare -A sections
-
-    # Check, if selected application has been invoked with options (:bcinprtu).
-    [[ $selection == :* ]] && {
-        [[ ${selection%% *} =~ ^:.*b.*$ ]] && status=block
-        [[ ${selection%% *} =~ ^:.*c.*$ ]] && terminal=true && mode=cli
-        [[ ${selection%% *} =~ ^:.*i.*$ ]] && status=ign
-        [[ ${selection%% *} =~ ^:.*n.*$ ]] && new_terminal=true
-        [[ ${selection%% *} =~ ^:.*p.*$ ]] && pretend=pretend
-        [[ ${selection%% *} =~ ^:.*t.*$ ]] && terminal=true && mode=tui
-        [[ ${selection%% *} =~ ^:.*u.*$ ]] && build_new_file=build_new_file
-        selection=${selection#:* }
-    }
-
-    # If option ":p" and ":u" have not been set, then we will look for the application in the application index file and declare some variables.
-    [[ $pretend != pretend && $build_new_file != build_new_file ]] && {
-        #status=reg
-        #terminal=
-        #new_terminal=
-
-        while builtin read -r apps_status apps_mode apps_app apps_file
-        do
-            [[ $apps_app == ${selection% *} && -f $apps_file ]] && {
-                while IFS='=' builtin read -r key val
-                do
-                    if [[ $key =~ ^\[.*\]$ ]]
-                    then
-                        ((section_number++))
-                    elif [[ $key =~ ^(Name|Exec|Terminal|StartupWMClass|X-dacti_mode|X-dacti_new_term|X-dacti_status|X-dacti_win_sg|X-dacti_win_pl)$ ]]
-                    then
-                        sections[${section_number} ${key/-/_}]=$val
-                    fi
-                done < "$apps_file"
-            }
-        done < "$DACTI_APPS_INDEX_FILE"
-
-        # If application has been indexed and has more than one exec key, then decide, what to do.
-        case $section_number in
-            0)
-                    build_new_file=build_new_file
-                    ;;
-            [^1])
-                    builtin read -r -d ']' section_number \
-                        <<< "$(\
-                            for ((i=1 ; i <= ${section_number[@]} ; i++))
-                            do
-                                builtin printf '[%s] [%s] [%s] $ %s\n' "$i" "${sections[${i} X_dacti_status]};${sections[${i} X_dacti_mode]};${sections[${i} X_dacti_new_term]}" "${sections[${i} Name]}" "${sections[${i} Exec]}"
-                            done | __dacti_menu_cmd "SELECTION")"
-                    section_number=${section_number/\[/}
-                    [[ ! $section_number ]] && {
-                        builtin read -r -d ']' selec \
-                            < <(builtin printf '%s\n' '[1] return' "[2] Exec: $ ${selection}" "[3] Set options and exec: $ ${selection}" "[4] Edit command and set options." | __dacti_menu_cmd "SELECTION")
-                        case ${selec/\[/} in
-                            4)
-                                    selection=$(__dacti_menu_cmd "COMMAND" <<< "$selection")
-                                    ;&
-                            3)
-                                    selec=$(__dacti_menu_cmd "OPTIONS [bcintu]" <<< ":")
-                                    [[ ${selec%% *} =~ ^:.*b.*$ ]] && status=block
-                                    [[ ${selec%% *} =~ ^:.*c.*$ ]] && terminal=true && mode=cli
-                                    [[ ${selec%% *} =~ ^:.*i.*$ ]] && status=ign
-                                    [[ ${selec%% *} =~ ^:.*n.*$ ]] && new_terminal=true
-                                    [[ ${selec%% *} =~ ^:.*t.*$ ]] && terminal=true && mode=tui
-                                    [[ ${selec%% *} =~ ^:.*u.*$ ]] && build_new_file=build_new_file
-                                    [[ ! $selection ]] && builtin return 1
-                                    ;&
-                            2)
-                                    section_number=0
-                                    ;;
-                            *)
-                                    builtin return 1
-                                    ;;
-                        esac
-                    }
-                    ;;
-        esac
-    }
-
-    # Set application specific variables.
-    sections[${section_number} X_dacti_status]=${status:-${sections[${section_number} X_dacti_status]}}
-    sections[${section_number} X_dacti_status]=${sections[${section_number} X_dacti_status]:-reg}
-    sections[${section_number} Terminal]=${terminal:-${sections[${section_number} Terminal]}}
-    sections[${section_number} X_dacti_new_term]=${new_terminal:-${sections[${section_number} X_dacti_new_term]}}
-    sections[${section_number} X_dacti_mode]=${mode:-${sections[${section_number} X_dacti_mode]}}
-    sections[${section_number} X_dacti_mode]=${sections[${section_number} X_dacti_mode]:-gui}
-
-    # Check the status of the application.
-    case ${sections[${section_number} X_dacti_status]} in
-        block)
-            [[ ! $build_new_file ]] && \
-            __dacti_set_log "${selection% *}: block status true" && \
-            builtin return 1
-            ;;
-        ign)
-            __dacti_set_log "${selection% *}: ign status true" && \
-            __dacti_exec_selection
-            ;;
-        reg)
-            __dacti_check_wins
-            ;;
-        *)
-            __dacti_set_status 1 "Quit: Status ${status} is unknown"
-    esac
-
-    if [[ $launch_status == fail ]]
-    then
-        __dacti_set_status 1 "Quit: Launch has failed"
-    else
-        # Create new desktop file, if invoked with ":u" or if there is no entry in the index file.
-        [[ $build_new_file ]] && __dacti_build_new_file
-        builtin printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) launch ${selection% *}" >> "$DACTI_LOG_FILE"
-        __dacti_set_status 0 "Quit: Execution has finished"
-    fi
-}
-
-__dacti_selection_0()
-{
-    builtin declare \
-        apps_app= \
-        apps_file= \
-        apps_mode= \
-        apps_status=
-
-    builtin printf '[%s]\n' "${menu_0[@]}"
-    [[ $(command stat -c %s "$DACTI_APPS_INDEX_FILE" 2>/dev/null) -ge 2 ]] && {
-        while builtin read -r apps_status apps_mode apps_app apps_file
-        do
-            [[ $apps_status != block ]] && builtin printf '%s\n' "$apps_app"
-        done < "$DACTI_APPS_INDEX_FILE"
-    } | command sort -u
-}
-
-__dacti_comm()
-{
-    builtin declare \
-        arg= \
-        counter= \
-        element_array_1= \
-        element_array_2= \
-        skip=
-
-    builtin declare -a \
-        "array_1=()" \
-        "array_2=()"
-
-    { (($#)) && counter=1 ; } || builtin return 1
-
-    for arg
-    do
-        [[ $arg == -- ]] && ((counter++))
-    done
-
-    for ((i=1 ; i <= $counter ; i++))
-    do
-        while [[ $# -gt 0 && $1 != -- ]]
-        do
-            builtin eval "array_${i}+=( "$1" )"
-            builtin shift 1
-        done
-        [[ $1 == -- ]] && builtin shift 1
-    done
-
-    for element_array_1 in "${array_1[@]}"
-    do
-        for element_array_2 in "${array_2[@]}"
-        do
-            [[ $element_array_1 == $element_array_2 ]] && { skip=1 ; builtin break ; }
-        done
-        ((skip)) || builtin printf '%s\n' "$element_array_1"
-        skip=
-    done
-}
-
-__dacti_update_applications()
-{
-    builtin declare \
-        file= \
-        mode= \
-        path=
-
-    builtin exec 3>>"$DACTI_APPS_INDEX_FILE"
-
-    if [[ -f $DACTI_APPS_CACHE_FILE ]]
-    then
-        # If there is an application cache file, then compare it with the current state and update the application index file.
-        while builtin read -r _ file
-        do
-            path=$file
-            file=${file##*/}
-            command sed -i -e "/^.* \<${file%.desktop}\> .*/ d" "$DACTI_APPS_INDEX_FILE"
-            if command egrep -q -e 'Terminal=(1|[tT]rue|[yY]es)' "$path"
-            then
-                mode=cli
-            else
-                mode=gui
-            fi
-            builtin printf '%s\n' "reg ${mode} ${file%.desktop} ${path}" 1>&3
-        done < <(command comm -23 <(command find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -printf '%T@ %p\n' 2>/dev/null | command sort -n | command tee "${DACTI_APPS_CACHE_FILE}.$$") "$DACTI_APPS_CACHE_FILE")
-        command mv -- "${DACTI_APPS_CACHE_FILE}.$$" "${DACTI_APPS_CACHE_FILE}"
-    else
-        # If there is no cache file, create a new index file.
-        while builtin read -r _ file
-        do
-            path=$file
-            file=${file##*/}
-            if command egrep -q -e 'Terminal=(1|[tT]rue|[yY]es)' "$path"
-            then
-                mode=cli
-            else
-                mode=gui
-            fi
-            builtin printf '%s\n' "reg ${mode} ${file%.desktop} ${path}" 1>&3
-        done < <(command find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -printf '%T@ %p\n' 2>/dev/null | command sort -n | command tee "$DACTI_APPS_CACHE_FILE")
-    fi
-
-    builtin exec 3<&-
-
-    __dacti_set_log "Applications: Update has been proccessed"
-}
-
-__dacti_update_categories()
-{
-    builtin declare \
-        cats= \
-        file= \
-        i=
-
-    builtin declare -a \
-        "categories=()" \
-        "main=()" \
-        "sub=()"
-
-    builtin cd -- "$DACTI_CATS_DATA_DIR" || __dacti_set_status 1 "Categories: Could not cd into dir '${DACTI_CATS_DATA_DIR}'"
-
-    while IFS=':' builtin read -r file cats
-    do
-        cats=${cats#Categories=}
-        categories=(${cats//;/ })
-        ((${#categories[@]} == 0)) && builtin continue
-
-        builtin mapfile -t main < <(command fgrep -e "$(builtin printf '%s\n' "${categories[@]}")" "$DACTI_CATS_MAIN_INFO_FILE")
-        builtin mapfile -t sub < <(__dacti_comm "${categories[@]}" -- "${main[@]}")
-
-        for i in "${sub[@]}"
-        do
-            command grep -q "^${i}\>" "$DACTI_CATS_SUB_INFO_FILE" || builtin unset -v "sub[$i]"
-        done
-
-        if ((${#sub[@]} > 0))
-        then
-            while IFS= builtin read -rd ''
-            do
-                command ln -f -s "$file" "$REPLY"
-            done < <(command find ${main[*]} -mindepth 1 -type d -print0 | command grep -zZ -f <(builtin printf '/%s$\n' "${sub[@]}"))
-        else
-            for i in "${main[@]}"
-            do
-                command ln -f -s "$file" "$i"
-            done
-        fi
-    done < <(command find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' -exec grep -HR '^Categories' 2>/dev/null {} + | command tee "$DACTI_CATS_INDEX_FILE")
-
-    command find "$DACTI_CATS_DATA_DIR" -type l -xtype l -delete
-
-    __dacti_set_log "Categories: Update has been proccessed"
-}
-
-__dacti_update_keywords()
-{
-    command find ${xdg_applications[*]} $xdg_applications_home -name '*.desktop' \
-            -exec grep -HR '^Keywords=' 2>/dev/null {} + | \
-        command sed -e 's/ $//' -e 's/$/\;/' -e 's/\;\;/\;/' -e 's/\; /\;/g' | \
-        command tee "$DACTI_KEYWS_INDEX_FILE" | \
-        command sed -e 's/^.*:Keywords=//' -e 's/;/\n/g' | \
-        command grep -v -e '^$' | \
-        command sort -u  > "$DACTI_KEYWS_CACHE_FILE"
-
-    __dacti_set_log "Keywords: Update has been proccessed"
-}
-
-__dacti_set_args()
-{
-    builtin declare o=
-    if [[ ! $OPTARG =~ ^-.+ ]]
-    then
-        for o
-        do
-            builtin declare -g "$o"
-        done
-    else
-        { builtin printf '%s\n' "Option '-${opt}' requires an argument" 1>&2 ; builtin exit 1 ; }
-    fi
-}
-
-__dacti_set_status()
-{
-    builtin declare -i status_code=$1
-    builtin declare status_message="$2"
-
-    if ((status_code == 0))
-    then
-        builtin printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) success ${status_message}" >> "$DACTI_LOG_FILE"
-    else
-        builtin printf '%s\n' "${0##*/}:Status:Error:${status_code}: ${status_message}" >&2
-        builtin printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) error ${status_message}" >> "$DACTI_LOG_FILE"
-    fi
-
-    builtin exit "$status_code"
-}
-
-__dacti_set_log()
-{
-    builtin declare log_message="$1"
-    builtin printf '%s\n' "$(date +%Y-%m-%d_%H:%M:%N) event ${log_message}" >> "$DACTI_LOG_FILE"
-}
-
-__dacti_set_environment()
-{
-    builtin declare \
-        arg= \
-        args= \
-        delim=\'
-
-    # Translate long options on command line into short options.
-    for arg
-    do
-        arg=${arg#--}
-        case $arg in
-            conf-file=?*)           args="${args}-C ${delim}${arg#*=}${delim} " ;;
-            help)                   args="${args}-h "                           ;;
-            pretend)                args="${args}-p "                           ;;
-            quit)                   args="${args}-q "                           ;;
-            update-applications)    args="${args}-a "                           ;;
-            update-categories)      args="${args}-c "                           ;;
-            update-keywords)        args="${args}-k "                           ;;
-            version)                args="${args}-v "                           ;;
-            *)                      if [[ ${arg:0:1} == - ]]
-                                    then
-                                        args="${args}${arg} "
-                                    else
-                                        args="${args}${delim}${arg}${delim} "
-                                    fi
-        esac
-    done
-
-    builtin declare opt=
-    builtin declare -g \
-        pretend= \
-        quit= \
-        update_applications= \
-        update_categories= \
-        update_keywords=
-
-    # Do getopts, do things with commandline arguments.
-    builtin eval builtin set -- "$args"
-    while builtin getopts :acC:hkpqv opt
-    do
-        case $opt in
-            C)  __dacti_set_args "DACTI_CONF_FILE=$OPTARG"      ;;
-            a)  update_applications=update_applications         ;;
-            c)  update_categories=update_categories             ;;
-            h)  __dacti_help ; builtin exit 0                   ;;
-            k)  update_keywords=update_keywords                 ;;
-            p)  pretend=pretend                                 ;;
-            q)  quit=quit                                       ;;
-            v)  __dacti_version ; builtin exit 0                ;;
-            :)  builtin printf '%s\n' "Option '-${OPTARG}' requires an argument" 1>&2
-                builtin exit 1                                  ;;
-            \?) builtin printf '%s\n' "Unknown flag: '-${OPTARG}'" 1>&2
-                builtin exit 1
-        esac
-    done
-
-    # Declare some enviroments, before we will source a conf file.
-    builtin declare \
-        predir_datadir=${XDG_DATA_HOME:-${HOME}/.local/share} \
-        predir_configdir=${XDG_CONFIG_HOME:-${HOME}/.config}
-    builtin declare -gr DACTI_CONF_FILE=${DACTI_CONF_FILE:-${predir_configdir}/dacti}/dacti.conf
-    builtin declare -gA d_color
-    builtin declare -g \
-        menu_0_prompt= \
-        term=
-    builtin declare -ga "menu_0=()"
-
-    # Source conf file.
-    if [[ -f $DACTI_CONF_FILE ]]
-    then
-        builtin source "$DACTI_CONF_FILE" 2>/dev/null || \
-        { builtin printf '%s\n' "${0##*/}:Status:Error:1: '${DACTI_CONF_FILE}' has not been sourced" 1>&2 ; builtin exit 1 ; }
-    else
-         { builtin printf '%s\n' "${0##*/}:Status:Error:1: '${$DACTI_CONF_FILE}' is not a regular file" 1>&2 ; builtin exit 1 ; }
-    fi
-
-    # Now declare all other enviroment variables.
-    builtin declare -gr DACTI_DATA_DIR=${DACTI_DATA_DIR:-${predir_datadir}/dacti}
-    builtin declare -gr \
-       DACTI_APPS_INDEX_FILE=${DACTI_APPS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_applications.index} \
-       DACTI_APPS_CACHE_FILE=${DACTI_APPS_CACHE_FILE:-${DACTI_DATA_DIR}/dacti_applications.cache} \
-       DACTI_CATS_DATA_DIR=${DACTI_CATS_DATA_DIR:-${DACTI_DATA_DIR}/Categories} \
-       DACTI_CATS_INDEX_FILE=${DACTI_CATS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_categories.index} \
-       DACTI_CATS_MAIN_INFO_FILE=${DACTI_CATS_MAIN_INFO_FILE:-${DACTI_DATA_DIR}/dacti_categories_main.info} \
-       DACTI_CATS_SUB_INFO_FILE=${DACTI_CATS_SUB_INFO_FILE:-${DACTI_DATA_DIR}/dacti_categories_sub.info} \
-       DACTI_KEYWS_INDEX_FILE=${DACTI_KEYWS_INDEX_FILE:-${DACTI_DATA_DIR}/dacti_keywords.index} \
-       DACTI_KEYWS_CACHE_FILE=${DACTI_KEYWS_CACHE_FILE:-${DACTI_DATA_DIR}/dacti_keywords.cache} \
-       DACTI_LOG_FILE=${DACTI_LOG_FILE:-${DACTI_DATA_DIR}/dacti.log} \
-       DACTI_TMP_DIR=${DACTI_TMP_DIR:-${TMPDIR:-/tmp}} \
-       xdg_data_dirs=${XDG_DATA_DIRS:-/usr/local/share:/usr/share}
-    builtin declare -gr \
-        DACTI_APPS_DIRS=${DACTI_APPS_DIRS:-${xdg_data_dirs}} \
-        DACTI_APPS_DIR_HOME=${DACTI_APPS_DIR_HOME:-${predir_datadir}/applications}
-    builtin declare -g xdg_applications_home=$DACTI_APPS_DIR_HOME
-    builtin declare -a xdg_applications='(${DACTI_APPS_DIRS//:/ })'
-    builtin declare -ga xdg_applications='(${xdg_applications[@]/%/\/applications})'
-    builtin declare -g \
-        menu_0_prompt=${menu_0_prompt:->} \
-        term=${term:-xterm}
-    builtin declare -ga menu_0='(${menu_0[@]:-BIN-ASC BIN-ATIME-ASC BIN-ATIME-DESC BIN-DESC CATEGORIES KEYWORDS LOG OCCUR})'
-    builtin declare -g invocation_mode=
-
-    # Check invocation mode.
-    if command tty -s
-    then
+        {
+                builtin typeset i="$(</dev/fd/0)"
+        } <<-'INIT'
+builtin typeset \
+        invocation_mode \
+        predir_datadir=${XDG_DATA_HOME:-${HOME}/.local.share} \
+        predir_confdir=${XDG_CONFIG_HOME:-${HOME}/.config} \
+        prompt=\> \
+        selection \
+        term=xterm ;
+
+builtin typeset -i DACTI_PRETEND=$DACTI_PRETEND
+
+builtin typeset \
+        DACTI_CONF_FILE=${DACTI_CONF_FILE:-${predir_confdir}/dacti/dactirc} \
+        DACTI_INDEX_FILE=${DACTI_INDEX_FILE:-${predir_datadir}/dacti/dacti.index}
+
+builtin typeset -a "menu=(
+        BIN-ASC
+        BIN-ATIME-ASC
+        BIN-ATIME-DESC
+        BIN-DESC
+)"
+
+if
+        command tty -s
+then
         invocation_mode=cli
-    elif [[ $DISPLAY ]]
-    then
+elif
+        [[ -n $DISPLAY ]]
+then
         invocation_mode=gui
-    else
-        { builtin printf '%s\n' "${0##*/}:Status:Error:1: Neither cli nor gui mode" 1>&2 ; builtin exit 1 ; }
-    fi
+else
+        builtin printf '%s\n' "Error: Could not determine invocation mode" 1>&2
+        builtin return 1
+fi
+
+builtin typeset -r \
+        DACTI_CONF_FILE \
+        invocation_mode ;
+
+[[ -f $DACTI_CONF_FILE ]] || {
+        command mkdir -p "${DACTI_CONF_FILE#*/}"
 }
 
-__dacti_main()
+[[ -f $DACTI_INDEX_FILE ]] || {
+        command mkdir -p "${DACTI_INDEX_FILE#*/}"
+        > "$DACTI_INDEX_FILE"
+}
+INIT
+        builtin printf '%s' "$i"
+
+} 2>/dev/null
+
+function Dacti::ExecApp
+if
+        command -v "${command[0]}" 1>/dev/null 2>&1
+then
+        if
+                [[
+                        ${App[nterminal]} -eq 1 ||
+                        $invocation_mode == gui
+                ]]
+        then
+                if
+                        (( ${App[background]} == 1 ))
+                then
+                        if
+                                (( ${App[keep]} == 1 ))
+                        then
+                                ( builtin eval ${term} -e "${command[*]}\;${SHELL:-sh}" \& )
+                        else
+                                ( builtin eval ${term} -e "${command[*]}\;" \& )
+                        fi
+                else
+                        if
+                                (( ${App[keep]} == 1 ))
+                        then
+                                builtin eval ${term} -e "${command[*]}\;${SHELL:-sh}"
+                        else
+                                builtin eval ${term} -e "${command[*]}\;"
+                        fi
+                fi
+        else
+                if
+                        (( ${App[background]} == 1 ))
+                then
+                        ( builtin eval ${SHELL:-sh} "-c ${command[*]}" \& )
+                else
+                        if
+                                (( ${App[keep]} == 1 ))
+                        then
+                                builtin eval ${SHELL:-sh} "-c ${command[*]}" \; command printf '%s\\n' \'Press ENTER to continue\' ; builtin read
+                        else
+                                builtin eval ${SHELL:-sh} "-c ${command[*]}"
+                        fi
+                fi
+        fi
+
+        return 1
+
+        if
+                (( ${App[terminal]} == 1 )) &&
+                (( ${App[nterminal]} == 1 )) ||
+                [[ $invocation_mode == gui ]]
+        then
+                (
+                        2>/dev/null \
+                        builtin exec ${term} -e "${command[*]};${SHELL:-sh}" &
+                )
+        else
+                ( builtin exec ${command[*]} 2>/dev/null & )
+        fi
+else
+        launch_status=fail
+fi
+
+function Dacti::Main
 {
-    __dacti_set_environment "$@"
+        Dacti::GetArgs "$@" || {
+                builtin source <(Dacti::Init)
+                [[ -f "$DACTI_CONF_FILE" ]] && {
+                        builtin source "$DACTI_CONF_FILE"
+                }
+                Dacti::MainLoop
+        }
+}
 
-    # Create index file and app dir, if they have not been created before.
-    [[ -d $DACTI_DATA_DIR ]] || command mkdir -p "$DACTI_DATA_DIR"
-    [[ -f $DACTI_APPS_INDEX_FILE ]] || 1> "$DACTI_APPS_INDEX_FILE"
+function Dacti::GetArgs
+case $1 in
+-h | --help)
+        Dacti::PrintHelp
+;;
+-v | --version)
+        Dacti::PrintVersion
+;;
+*)
+        builtin return 1
+esac
 
-    # Perform options from commandline.
-    [[ $update_applications == update_applications ]] && __dacti_update_applications
-    [[ $update_categories == update_categories ]] && __dacti_update_categories
-    [[ $update_keywords == update_keywords ]] && __dacti_update_keywords
-    [[ $quit == quit ]] && __dacti_set_status 0 "Quit: With these command line options: '$@'"
-    builtin shift $((OPTIND-1))
+function Dacti::PrintVersion
+{
+        builtin printf 'v%s\n' "0.2"
+}
 
-    # Unset variables and functions, we do not need anymore.
-    builtin unset -v \
-        quit \
-        update_applications \
-        update_categories \
-        update_keywords
-    builtin unset -f \
-        __dacti_set_args \
-        __dacti_set_environment
+function Dacti::PrintHelp
+{
+        {
+                builtin typeset help="$(</dev/fd/0)"
+        } <<'HELP'
+Usage
+        dacti [ -h | --help | -v | --version ]
 
-    # Perform the main selection menu and handle selections.
-    builtin declare -g selection=
-    while builtin :
-    do
-        selection=$(__dacti_selection_0 | __dacti_menu_cmd)
+Main selection menu: entries
+        [BIN-ASC]                       Browse executables within <PATH>. Sort
+                                        them in ascending order by their names
+        [BIN-DESC]                      "" Sort them in descending order by their
+                                        names
+        [BIN-ATIME-ASC]                 "" Sort them in ascending order by their
+                                        access times
+        [BIN-ATIME-DESC]                "" Sort them in descending order by their
+                                        access times
+        <COMMAND>                       Launch application (run or raise)
+
+Main selecton menu: command prefixes
+        :b                              Execute COMMAND in background
+        :c                              Declare mode 'cli'
+        :i                              Declare status 'ign'
+        :k                              Keep the process. Wait for a key press
+                                        or spawn a new shell instance
+        :l                              Declare status 'block'
+        :n                              Run COMMAND in a new terminal emulator
+                                        window
+        :p                              Don't check, wheater COMMAND is indexed.
+                                        Launch it directly and create NO record.
+                                        See env DACTI_PRETEND
+        :t                              Declare mode 'tui'
+        :u                              Don't check, wheater COMMAND is indexed.
+                                        Launch it directly and create a new
+                                        record.
+
+Environment variables
+        DACTI_CONF_FILE                 See function Dacti::Init
+        DACTI_INDEX_FILE                ""
+        DACTI_PRETEND                   Default: 0
+
+Configuration
+        normal scalar variables
+            prompt                      Default: >
+            term                        Default: xterm
+        indexed array variables
+            menu                        See entry section above
+        functions
+            Dacti::CmdMenuCustom        See doc/examples/dactirc
+            Dacti::ParseSelectionCustom ""
+            Dacti::RaiseAppPlCustom     ""
+            Dacti::RaiseAppSgCustom     ""
+HELP
+        builtin printf '%s\n' "$help"
+}
+
+function Dacti::MainLoop
+while
+        builtin :
+do
+        selection=$(
+                Dacti::PrintMenu0 \
+                | Dacti::CmdMenu
+        )
         case ${selection,,} in
-            \[bin-asc\])
-                __dacti_check_status "$(__dacti_bin_asc | __dacti_menu_cmd "BIN-ASC")"
-                ;;
-            \[bin-atime-asc\])
-                __dacti_check_status "$(__dacti_bin_atime_asc | __dacti_menu_cmd "BIN-ATIME-ASC")"
-                ;;
-            \[bin-atime-desc\])
-                __dacti_check_status "$(__dacti_bin_atime_desc | __dacti_menu_cmd "BIN-ATIME-DESC")"
-                ;;
-            \[bin-desc\])
-                __dacti_check_status "$(__dacti_bin_desc | __dacti_menu_cmd "BIN-DESC")"
-                ;;
-            *\[categories\])
-                __dacti_browse_categories "$selection"
-                ;;
-            *\[keywords\])
-                __dacti_browse_keywords "$selection"
-                ;;
-            \[log\])
-                selection=$(__dacti_browse_log | __dacti_menu_cmd "LOG") && \
-                [[ $selection =~ (^.* launch .*$) ]] && \
-                __dacti_check_status "${selection#* * }" || \
-                builtin continue
-                ;;
-            \[occur\])
-                selection=$(__dacti_occur | __dacti_menu_cmd "OCCUR") && \
-                __dacti_check_status "${selection#      * }"
-                ;;
-            \[*\])
-                builtin declare -f __dacti_selection_custom 1>/dev/null 2>&1 && \
-                __dacti_selection_custom "${selection//[\[\]]/}"
-                ;;
-            "")
-                __dacti_set_status 0 "Quit: Nothing has been chosen"
-                ;;
-            *)
-                __dacti_check_status "$selection"
+        \[bin-asc\])
+                Dacti::ParseSelection "$(
+                        Dacti::PrintMenuBinAsc \
+                        | Dacti::CmdMenu "BIN-ASC"
+                )"
+        ;;
+        \[bin-atime-asc\])
+                Dacti::ParseSelection "$(
+                        Dacti::PrintMenuBinAtimeAsc \
+                        | Dacti::CmdMenu "BIN-ATIME-ASC"
+                )"
+        ;;
+        \[bin-atime-desc\])
+                Dacti::ParseSelection "$(
+                        Dacti::PrintMenuBinAtimeDesc \
+                        | Dacti::CmdMenu "BIN-ATIME-DESC"
+                )"
+        ;;
+        \[bin-desc\])
+                Dacti::ParseSelection "$(
+                        Dacti::PrintMenuBinDesc \
+                        | Dacti::CmdMenu "BIN-DESC"
+                )"
+        ;;
+        \[*\])
+                builtin typeset -f Dacti::ParseSelectionCustom 1>/dev/null 2>&1 && {
+                        Dacti::ParseSelectionCustom "${selection//[\[\]]/}"
+                }
+                builtin :
+        ;;
+        "")
+                builtin return 0
+        ;;
+        *)
+                Dacti::ParseSelection "$selection"
         esac
-    done
+done
+
+function Dacti::IndexApp
+{
+        >> "$DACTI_INDEX_FILE" \
+        builtin printf '%s\n' "${App[status]} ${App[mode]}${opts:+:${opts}} ${App[class]} ${command[0]}"
+}
+
+function Dacti::ParseSelection
+{
+        [[ -z $* ]] && builtin return 0
+
+        builtin typeset \
+                launch_status \
+                opts \
+                pref_status \
+                pref_mode ;
+
+        builtin typeset -i \
+                pref_background= \
+                pref_keep= \
+                pref_nterminal= \
+                pref_pretend=$DACTI_PRETEND \
+                pref_idx= ;
+
+                #pref_terminal=
+
+        builtin typeset -a "command=($1)"
+
+        builtin typeset -A App
+
+        [[ ${command[0]} == :* ]] && {
+                while
+                        builtin read -r -n 1
+                do
+                        case $REPLY in
+                        b)
+                                pref_background=1
+                                opts+=b
+                        ;;
+                        k)
+                                pref_keep=1
+                                opts+=k
+                        ;;
+                        l)
+                                pref_status=block
+                        ;;
+                        c)
+                                #pref_terminal=1
+                                pref_mode=cli
+                        ;;
+                        i)
+                                pref_status=ign
+                        ;;
+                        n)
+                                pref_nterminal=1
+                                opts+=n
+                        ;;
+                        p)
+                                pref_pretend=1
+                        ;;
+                        t)
+                                #pref_terminal=1
+                                pref_mode=tui
+                        ;;
+                        u)
+                                pref_idx=1
+                        esac
+                done <<< "${command[0]/:/}"
+
+                command=(${command[@]:1})
+        }
+
+        if
+                ((
+                        pref_pretend == 0 ||
+                        pref_idx == 0
+                ))
+        then
+                builtin typeset \
+                        idx_app \
+                        idx_class \
+                        idx_mode \
+                        idx_status ;
+                while
+                        builtin read -r idx_status idx_mode idx_class idx_app
+                do
+                        [[ $idx_app == ${command[0]} ]] && {
+                                App=(
+                                        [idx_status]=$idx_status
+                                        [idx_mode]=$idx_mode
+                                        [idx_class]=$idx_class
+                                        [idx_app]=$idx_app
+                                )
+                                while
+                                        builtin read -r -n 1
+                                do
+                                        case $REPLY in
+                                        b)
+                                                pref_background=1
+                                        ;;
+                                        k)
+                                                pref_keep=1
+                                        ;;
+                                        n)
+                                                pref_nterminal=1
+                                        esac
+                                done <<< "${idx_mode##*:}"
+                        }
+                done < "$DACTI_INDEX_FILE"
+
+                [[ -n ${App[idx_status]} ]] || pref_idx=1
+        fi
+
+        App[status]=${pref_status:-${App[idx_status]}}
+        App[status]=${App[status]:-reg}
+        App[background]=$pref_background
+        App[keep]=$pref_keep
+        #App[terminal]=$pref_terminal
+        App[nterminal]=$pref_nterminal
+        App[mode]=${pref_mode:-${App[idx_mode]}}
+        App[mode]=${App[mode]:-gui}
+
+        if
+                [[ -n ${App[idx_class]} ]]
+        then
+                App[class]=${App[idx_class]}
+        else
+                builtin typeset c=${command[0]:0:1}
+                App[class]=${c^}${command[0]:1}
+        fi
+
+        case ${App[status]} in
+        block)
+                builtin false
+        ;;
+        ign)
+                Dacti::ExecApp
+        ;;
+        reg)
+                Dacti::RaiseApp
+        ;;
+        *)
+                builtin return 1
+        esac
+
+        if
+                [[ ${pref_idx}${pref_pretend}${launch_status} == 10 ]]
+        then
+                Dacti::IndexApp
+        fi
+
+        builtin return 1
+}
+
+function Dacti::PrintMenu0
+{
+        builtin typeset \
+                app \
+                class \
+                mode \
+                status ;
+
+        builtin printf '[%s]\n' "${menu[@]}"
+
+        while
+                builtin read -r status mode class app
+        do
+                [[ $status == block ]] || {
+                        builtin printf '%s\n' "$app"
+                }
+        done < "$DACTI_INDEX_FILE" \
+        | command sort -u
+}
+
+function Dacti::PrintMenuBinAsc
+{
+        command lsx ${PATH//:/ } \
+        | command sort -u
+}
+
+function Dacti::PrintMenuBinAtimeAsc
+{
+        command find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' \
+        | command sort -n \
+        | command cut -f2 \
+        | command fgrep -xf <(command lsx ${PATH//:/ }) \
+        | command uniq
+}
+
+function Dacti::PrintMenuBinAtimeDesc
+{
+        command find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' \
+        | command sort -rn \
+        | command cut -f2 \
+        | command fgrep -xf <(command lsx ${PATH//:/ }) \
+        | command uniq
+}
+
+function Dacti::PrintMenuBinDesc
+{
+        command lsx ${PATH//:/ } \
+        | command sort -ru
+}
+
+function Dacti::CmdMenu
+if
+        builtin typeset -f Dacti::CmdMenuCustom 1>/dev/null 2>&1
+then
+        Dacti::CmdMenuCustom "${1:-$prompt}"
+else
+        command dmenu -p "${1:-$prompt}"
+fi
+
+function Dacti::RaiseApp
+{
+        builtin typeset \
+                id \
+                pid \
+                wm_pid \
+                xlist ;
+
+        builtin typeset -a \
+                pid_list \
+                xids ;
+
+        builtin read -r _ _ _ _ xlist < <(
+                command xprop -root _NET_CLIENT_LIST
+        )
+
+        if
+                [[ ${App[mode]} == gui ]]
+        then
+                for id in ${xlist//,/}
+                do
+                        [[ $(command xprop -id "$id" WM_CLASS) =~ ${App[class]} ]] && {
+                                xids+=($id)
+                        }
+                done
+        else
+                for pid in $(command pgrep -d ' ' "${command[0]}")
+                do
+                        until
+                                [[ ${pid// /} -eq 0 ]]
+                        do
+                                pid=$(
+                                        2>/dev/null \
+                                        command ps -p "${pid// /}" -o ppid=
+                                )
+                                pid_list+=(${pid// /})
+                        done
+                done
+                for id in ${xlist//,/}
+                do
+                        builtin read -r _ _ wm_pid < <(
+                                command xprop -id "$id" _NET_WM_PID
+                        )
+                        for pid in "${pid_list[@]}"
+                        do
+                                [[ $wm_pid == $pid ]] && xids+=($id)
+                        done
+                done
+        fi
+
+        case ${#xids[@]} in
+        0)
+                Dacti::ExecApp
+        ;;
+        1)
+                if
+                        builtin typeset -f Dacti::RaiseAppSgCustom 1>/dev/null 2>&1
+                then
+                        Dacti::RaiseAppSgCustom "${xids[0]}"
+                else
+                        Dacti::RaiseAppSg "${xids[0]}"
+                fi
+        ;;
+        *)
+                if
+                        builtin typeset -f Dacti::RaiseAppPlCustom 1>/dev/null 2>&1
+                then
+                        Dacti::RaiseAppPl "${xids[@]}"
+                else
+                        Dacti::RaiseAppPl "${xids[@]}"
+                fi
+        esac
+}
+
+function Dacti::RaiseAppSg
+{
+        command wmctrl -i -a "$1" || {
+                launch_status=fail
+                builtin return 1
+        }
+}
+
+function Dacti::RaiseAppPl
+{
+        builtin typeset id
+
+        for id
+        do
+                Dacti::RaiseAppSg "$id" || {
+                        launch_status=fail
+                        builtin return 1
+                }
+        done
 }
 
 # -- MAIN.
 
-__dacti_main "$@"
+Dacti::Main "$@"

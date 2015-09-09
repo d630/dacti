@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+
+term=stt
+prompt=\>
+#DACTI_INDEX_FILE=
+DACTI_PRETEND=0
+
+menu=(
+    ADDRESSES
+    BIN-ASC
+    BIN-ATIME-ASC
+    BIN-ATIME-DESC
+    BIN-DESC
+    CALC
+    CLIP
+    FILE
+    KUNO
+    PW
+    RADIO
+    TASK-ADD
+    WEB
+    WECKER
+    Z
+)
+
+function Dacti::CmdMenuCustom ()
+{
+    builtin typeset prompt="$1"
+
+    case $invocation_mode in
+    cli | tui)
+            command /usr/local/bin/slmenu -b -f -i \
+                    -p "$prompt" \
+                    -nb "#002b36" \
+                    -nf "#839496" \
+                    -sb "#839496" \
+                    -sf "#2C2C2C" \
+                    -uc "#2C2C2C" \
+                    -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*" ;
+            ;;
+    gui)
+            command /usr/local/bin/dmenu2 -b -f -i \
+                    -l "10" \
+                    -p "$prompt" \
+                    -nb "#002b36" \
+                    -nf "#839496" \
+                    -sb "#839496" \
+                    -sf "#2C2C2C" \
+                    -uc "#2C2C2C" \
+                    -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*" \
+                    -name "dacti" \
+                    -class "dacti" ;
+    esac
+}
+
+function Dacti::ParseSelectionCustom ()
+{
+        builtin typeset selection="$@"
+
+        case ${selection,,} in
+        z)
+                command z-fm.sh
+        ;;
+        clip)
+                command clipbored.sh
+        ;;
+        web)
+                if
+                        [[ $invocation_mode == cli ]]
+                then
+                        command furlview.sh "${X_XDG_LOG_HOME}/urls.log"
+                elif
+                        [[ $invocation_mode == gui ]]
+                then
+                        command ${term} -name "furlview-xterm" -e "furlview.sh "${X_XDG_LOG_HOME}/urls.log";exit;bash"
+                fi
+        ;;
+        radio)
+                command webradio.sh
+        ;;
+        file)
+                command special-files.sh
+        ;;
+        pw)
+                command pass-c.sh
+        ;;
+        addresses)
+                if
+                        [[ $invocation_mode == cli ]]
+                then
+                        command nottoomuch-wrapper.sh
+                elif
+                        [[ $invocation_mode == gui ]]
+                then
+                        command ${term} -e "nottoomuch-wrapper.sh;exit;bash" 2>/dev/null
+                fi
+        ;;
+        task-add)
+                if
+                        [[ $invocation_mode == cli ]]
+                then
+                        command taskwarrior-add.sh
+                elif
+                        [[ $invocation_mode == gui ]]
+                then
+                        command ${term} -e "taskwarrior-add.sh;exit;bash"
+                fi
+        ;;
+        kuno)
+                if
+                        [[ $invocation_mode == cli ]]
+                then
+                        command kuno.sh
+                elif
+                        [[ $invocation_mode == gui ]]
+                then
+                        command ${term} -e "kuno.sh;exit;bash"
+                fi
+        ;;
+        wecker)
+                command ${term} -e "wecker-gui.sh;bash"
+        ;;
+        calc)
+                if
+                        [[ $invocation_mode == cli ]]
+                then
+                        command calc.sh
+                elif
+                        [[ $invocation_mode == gui ]]
+                then
+                        command ${term} -e "calc.sh;exit;bash"
+                fi
+        ;;
+        *)
+                builtin return 1
+        esac
+}
+
+function Dacti::RaiseAppSgCustom ()
+{
+        command wmctrl -i -a "${xids[0]}" || {
+                launch_status=fail
+                builtin return 1
+        }
+}
+
+function Dacti::RaiseAppPlCustom ()
+{
+        builtin typeset id
+
+        for id
+        do
+                Dacti::RaiseAppSgCustom "$id" || {
+                        launch_status=fail
+                        builtin return 1
+                }
+        done
+}
+

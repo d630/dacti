@@ -201,12 +201,11 @@ function Dacti::ParseSelection
                 pref_mode ;
 
         builtin typeset -i \
+                pref_idx= \
                 pref_keep= \
                 pref_nterminal= \
                 pref_pretend=$DACTI_PRETEND \
-                pref_idx= ;
-
-                #pref_terminal=
+                pref_terminal= ;
 
         builtin typeset -a "command=($1)"
 
@@ -222,7 +221,7 @@ function Dacti::ParseSelection
                                 opts+=k
                         ;;
                         c)
-                                #pref_terminal=1
+                                pref_terminal=1
                                 pref_mode=cli
                         ;;
                         i)
@@ -236,7 +235,7 @@ function Dacti::ParseSelection
                                 pref_pretend=1
                         ;;
                         t)
-                                #pref_terminal=1
+                                pref_terminal=1
                                 pref_mode=tui
                         ;;
                         u)
@@ -262,12 +261,6 @@ function Dacti::ParseSelection
                         builtin read -r idx_status idx_mode idx_class idx_app
                 do
                         [[ $idx_app == ${command[0]} ]] && {
-                                App=(
-                                        [idx_status]=$idx_status
-                                        [idx_mode]=$idx_mode
-                                        [idx_class]=$idx_class
-                                        [idx_app]=$idx_app
-                                )
                                 while
                                         builtin read -r -n 1
                                 do
@@ -279,6 +272,13 @@ function Dacti::ParseSelection
                                                 pref_nterminal=1
                                         esac
                                 done <<< "${idx_mode##*:}"
+                                [[ ${idx_mode%%:*} == gui ]] || pref_terminal=1
+                                App=(
+                                        [idx_status]=$idx_status
+                                        [idx_mode]=${idx_mode%%:*}
+                                        [idx_class]=$idx_class
+                                        [idx_app]=$idx_app
+                                )
                         }
                 done < "$DACTI_INDEX_FILE"
 
@@ -288,7 +288,7 @@ function Dacti::ParseSelection
         App[status]=${pref_status:-${App[idx_status]}}
         App[status]=${App[status]:-reg}
         App[keep]=$pref_keep
-        #App[terminal]=$pref_terminal
+        App[terminal]=$pref_terminal
         App[nterminal]=$pref_nterminal
         App[mode]=${pref_mode:-${App[idx_mode]}}
         App[mode]=${App[mode]:-gui}
@@ -297,6 +297,10 @@ function Dacti::ParseSelection
                 [[ -n ${App[idx_class]} ]]
         then
                 App[class]=${App[idx_class]}
+        elif
+                [[ ${App[mode]} != gui ]]
+        then
+                App[class]=-
         else
                 builtin typeset c=${command[0]:0:1}
                 App[class]=${c^}${command[0]:1}

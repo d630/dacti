@@ -121,11 +121,6 @@ builtin typeset -r \
 [[ -f $DACTI_CONF_FILE ]] || {
         command mkdir -p "${DACTI_CONF_FILE#*/}"
 }
-
-[[ -f $DACTI_INDEX_FILE ]] || {
-        command mkdir -p "${DACTI_INDEX_FILE#*/}"
-        > "$DACTI_INDEX_FILE"
-}
 INIT
         builtin printf '%s' "$i"
 
@@ -137,6 +132,10 @@ function Dacti::Main
                 builtin source <(Dacti::Init)
                 [[ -f "$DACTI_CONF_FILE" ]] && {
                         builtin source "$DACTI_CONF_FILE"
+                }
+                [[ -f $DACTI_INDEX_FILE ]] || {
+                        command mkdir -p "${DACTI_INDEX_FILE#*/}"
+                        > "$DACTI_INDEX_FILE"
                 }
                 Dacti::MainLoop
         }

@@ -95,6 +95,23 @@ functions
         Dacti::RaiseAppSgCustom         ""
 ```
 
+###### Index File
+
+Without any command prefixes a record would get the status `reg` and the mode `gui` per default (the command has a gui and may run OR raise).
+
+A record looks like:
+
+```
+# STATUS MODE[:PREFIXES] CLASS COMMAND
+
+reg gui Chromium chromium
+ign gui XTerm xterm
+```
+
+With a status `ign`, a command is not allowed to raise an existing window. `block` stops raising and running as well.
+
+If a command has more than one record, the last entry is gonna used.
+
 ##### NOTICE
 
 dacti has been written in [GNU bash](http://www.gnu.org/software/bash/) on [Debian GNU/Linux 9 (stretch/sid)](https://www.debian.org) using these programs/packages:

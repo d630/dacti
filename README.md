@@ -110,6 +110,8 @@ dacti has been written in [GNU bash](http://www.gnu.org/software/bash/) on [Debi
 
 dacti is not portable; it does not work in [ksh](http://www.kornshell.com/), [mksh](https://www.mirbsd.org/mksh.htm) or [zsh](http://www.zsh.org/). Your bash version needs to handle associative arrays.
 
+The usage of find is not BSD-like (grep -c find dacti => 2). Please open and issue with the correct invocation for your system.
+
 ##### CREDITS
 
 dacti is a rewrite of acti (v0.8; GNU GPLv3) by D630.

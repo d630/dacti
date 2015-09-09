@@ -6,7 +6,7 @@ I use dacti, because I want to have a DE indepent launcher in addtion to my shel
 
 ![](https://raw.githubusercontent.com/D630/dacti/master/doc/dacti.png)
 
-(Terminus 18)
+(Terminus 16)
 
 ##### BUGS & REQUESTS
 
@@ -54,18 +54,18 @@ Main selection menu: entries
                                         access times
         <COMMAND>                       Launch application (run or raise)
 
-Main selecton menu: command prefixes
+Main selecton menu: modifiers
         :c                              Declare mode 'cli'
         :i                              Declare status 'ign'
         :k                              Keep the process. Wait for a key press
                                         or spawn a new shell instance
         :n                              Run COMMAND in a new terminal emulator
                                         window
-        :p                              Don't check, wheater COMMAND is indexed.
+        :p                              Don't check, whether COMMAND is indexed.
                                         Launch it directly and create NO record.
                                         See env DACTI_PRETEND
         :t                              Declare mode 'tui'
-        :u                              Don't check, wheater COMMAND is indexed.
+        :u                              Don't check, whether COMMAND is indexed.
                                         Launch it directly and create a new
                                         record.
 ```

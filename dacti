@@ -355,11 +355,11 @@ Main selecton menu: command prefixes
                                         or spawn a new shell instance
         :n                              Run COMMAND in a new terminal emulator
                                         window
-        :p                              Don't check, wheater COMMAND is indexed.
+        :p                              Don't check, whether COMMAND is indexed.
                                         Launch it directly and create NO record.
                                         See env DACTI_PRETEND
         :t                              Declare mode 'tui'
-        :u                              Don't check, wheater COMMAND is indexed.
+        :u                              Don't check, whether COMMAND is indexed.
                                         Launch it directly and create a new
                                         record.
 

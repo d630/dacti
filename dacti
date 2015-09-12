@@ -82,8 +82,8 @@ function Dacti::Init
         } <<-'INIT'
 builtin typeset \
         invocation_mode \
-        predir_datadir=${XDG_DATA_HOME:-${HOME}/.local.share} \
         predir_confdir=${XDG_CONFIG_HOME:-${HOME}/.config} \
+        predir_datadir=${XDG_DATA_HOME:-${HOME}/.local/share} \
         prompt=\> \
         selection \
         term=xterm ;
@@ -119,7 +119,7 @@ builtin typeset -r \
         invocation_mode ;
 
 [[ -f $DACTI_CONF_FILE ]] || {
-        command mkdir -p "${DACTI_CONF_FILE#*/}"
+        command mkdir -p "${DACTI_CONF_FILE%/*}"
 }
 INIT
         builtin printf '%s' "$i"
@@ -134,7 +134,7 @@ function Dacti::Main
                         builtin source "$DACTI_CONF_FILE"
                 }
                 [[ -f $DACTI_INDEX_FILE ]] || {
-                        command mkdir -p "${DACTI_INDEX_FILE#*/}"
+                        command mkdir -p "${DACTI_INDEX_FILE%/*}"
                         > "$DACTI_INDEX_FILE"
                 }
                 Dacti::MainLoop
@@ -434,7 +434,7 @@ function Dacti::PrintMenuBinDesc
 
 function Dacti::PrintVersion
 {
-        builtin printf 'v%s\n' "0.2"
+        builtin printf 'v%s\n' "0.2.1"
 }
 
 function Dacti::RaiseApp

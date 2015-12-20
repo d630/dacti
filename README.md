@@ -29,7 +29,7 @@ git checkout $(git describe --abbrev=0 --tags)
 
 ##### INSTALL
 
-Just put `./dacti` on your PATH.
+Just put `./bin/dacti` on your PATH.
 
 ##### USAGE
 

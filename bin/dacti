@@ -77,22 +77,20 @@ Dacti::IndexApp
 
 Dacti::Init
 {
-        {
-                builtin typeset i="$(</dev/fd/0)"
-        } <<-'INIT'
+        { builtin typeset i="$(</dev/fd/0)" ; } <<-'INIT'
 builtin typeset \
         invocation_mode \
         predir_confdir=${XDG_CONFIG_HOME:-${HOME}/.config} \
         predir_datadir=${XDG_DATA_HOME:-${HOME}/.local/share} \
         prompt=\> \
         selection \
-        term=xterm ;
+        term=xterm;
 
 builtin typeset -i DACTI_PRETEND=$DACTI_PRETEND
 
 builtin typeset \
         DACTI_CONF_FILE=${DACTI_CONF_FILE:-${predir_confdir}/dacti/dactirc} \
-        DACTI_INDEX_FILE=${DACTI_INDEX_FILE:-${predir_datadir}/dacti/dacti.index}
+        DACTI_INDEX_FILE=${DACTI_INDEX_FILE:-${predir_datadir}/dacti/dacti.index};
 
 builtin typeset -a "menu=(
         BIN-ASC
@@ -116,7 +114,7 @@ fi
 
 builtin typeset -r \
         DACTI_CONF_FILE \
-        invocation_mode ;
+        invocation_mode;
 
 [[ -f $DACTI_CONF_FILE ]] || {
         command mkdir -p "${DACTI_CONF_FILE%/*}"
@@ -130,13 +128,16 @@ Dacti::Main
 {
         Dacti::GetArgs "$@" || {
                 builtin source <(Dacti::Init)
+
                 [[ -f "$DACTI_CONF_FILE" ]] && {
                         builtin source "$DACTI_CONF_FILE"
                 }
+
                 [[ -f $DACTI_INDEX_FILE ]] || {
                         command mkdir -p "${DACTI_INDEX_FILE%/*}"
                         > "$DACTI_INDEX_FILE"
                 }
+
                 Dacti::MainLoop
         }
 }
@@ -185,28 +186,28 @@ do
         ;;
         *)
                 Dacti::ParseSelection "$selection"
-                (( $? == 0 )) || builtin break
+                (( $? )) || builtin break
         esac
 done
 
 Dacti::ParseSelection
 {
-        [[ -z $* ]] && builtin return 0
+        [[ -n $* ]] || builtin return 0
 
         builtin typeset \
                 launch_status \
                 opts \
                 pref_status \
-                pref_mode ;
+                pref_mode;
 
         builtin typeset -i \
                 pref_idx= \
                 pref_keep= \
                 pref_nterminal= \
                 pref_pretend=$DACTI_PRETEND \
-                pref_terminal= ;
+                pref_terminal=;
 
-        builtin typeset -a "command=($1)"
+        builtin typeset -a "command=( $1 )"
 
         builtin typeset -A App
 
@@ -242,20 +243,17 @@ Dacti::ParseSelection
                         esac
                 done <<< "${command[0]/:/}"
 
-                command=(${command[@]:1})
+                command=( ${command[@]:1} )
         }
 
         if
-                ((
-                        pref_pretend == 0 ||
-                        pref_idx == 0
-                ))
+                (( pref_pretend == 0 || pref_idx == 0 ))
         then
                 builtin typeset \
                         idx_app \
                         idx_class \
                         idx_mode \
-                        idx_status ;
+                        idx_status;
                 while
                         builtin read -r idx_status idx_mode idx_class idx_app
                 do
@@ -330,9 +328,7 @@ Dacti::ParseSelection
 
 Dacti::PrintHelp
 {
-        {
-                builtin typeset help="$(</dev/fd/0)"
-        } <<'HELP'
+        { builtin typeset help="$(</dev/fd/0)" ; } <<'HELP'
 Usage
         dacti [ -h | --help | -v | --version ]
 
@@ -388,7 +384,7 @@ Dacti::PrintMenu0
                 app \
                 class \
                 mode \
-                status ;
+                status;
 
         builtin printf '[%s]\n' "${menu[@]}"
 
@@ -443,11 +439,11 @@ Dacti::RaiseApp
                 id \
                 pid \
                 wm_pid \
-                xlist ;
+                xlist;
 
         builtin typeset -a \
                 pid_list \
-                xids ;
+                xids;
 
         builtin read -r _ _ _ _ xlist < <(
                 command xprop -root _NET_CLIENT_LIST
@@ -459,7 +455,7 @@ Dacti::RaiseApp
                 for id in ${xlist//,/}
                 do
                         [[ $(command xprop -id "$id" WM_CLASS) =~ ${App[class]} ]] && {
-                                xids+=($id)
+                                xids+=( $id )
                         }
                 done
         else
@@ -472,7 +468,7 @@ Dacti::RaiseApp
                                         2>/dev/null \
                                         command ps -p "${pid// /}" -o ppid=
                                 )
-                                pid_list+=(${pid// /})
+                                pid_list+=( ${pid// /} )
                         done
                 done
                 for id in ${xlist//,/}
@@ -482,7 +478,7 @@ Dacti::RaiseApp
                         )
                         for pid in "${pid_list[@]}"
                         do
-                                [[ $wm_pid == $pid ]] && xids+=($id)
+                                [[ $wm_pid == $pid ]] && xids+=( $id )
                         done
                 done
         fi

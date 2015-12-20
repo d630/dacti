@@ -27,7 +27,7 @@
 
 # -- FUNCTIONS.
 
-Dacti::CmdMenu
+Dacti::CmdMenu ()
 if
         builtin typeset -f Dacti::CmdMenuCustom 1>/dev/null 2>&1
 then
@@ -36,7 +36,7 @@ else
         command dmenu -p "${1:-$prompt}"
 fi
 
-Dacti::ExecApp
+Dacti::ExecApp ()
 if
         command -v "${command[0]}" 1>/dev/null 2>&1
 then
@@ -57,7 +57,7 @@ else
         launch_status=fail
 fi
 
-Dacti::GetArgs
+Dacti::GetArgs ()
 case $1 in
 -h | --help)
         Dacti::PrintHelp
@@ -69,13 +69,13 @@ case $1 in
         builtin return 1
 esac
 
-Dacti::IndexApp
+Dacti::IndexApp ()
 {
         >> "$DACTI_INDEX_FILE" \
         builtin printf '%s\n' "${App[status]} ${App[mode]}${opts:+:${opts}} ${App[class]} ${command[0]}"
 }
 
-Dacti::Init
+Dacti::Init ()
 {
         { builtin typeset i="$(</dev/fd/0)" ; } <<-'INIT'
 builtin typeset \
@@ -124,7 +124,7 @@ INIT
 
 } 2>/dev/null
 
-Dacti::Main
+Dacti::Main ()
 {
         Dacti::GetArgs "$@" || {
                 builtin source <(Dacti::Init)
@@ -142,7 +142,7 @@ Dacti::Main
         }
 }
 
-Dacti::MainLoop
+Dacti::MainLoop ()
 while
         builtin :
 do
@@ -190,7 +190,7 @@ do
         esac
 done
 
-Dacti::ParseSelection
+Dacti::ParseSelection ()
 {
         [[ -n $* ]] || builtin return 0
 
@@ -326,7 +326,7 @@ Dacti::ParseSelection
         builtin return 1
 }
 
-Dacti::PrintHelp
+Dacti::PrintHelp ()
 {
         { builtin typeset help="$(</dev/fd/0)" ; } <<'HELP'
 Usage
@@ -378,7 +378,7 @@ HELP
         builtin printf '%s\n' "$help"
 }
 
-Dacti::PrintMenu0
+Dacti::PrintMenu0 ()
 {
         builtin typeset \
                 app \
@@ -398,13 +398,13 @@ Dacti::PrintMenu0
         | command sort -u
 }
 
-Dacti::PrintMenuBinAsc
+Dacti::PrintMenuBinAsc ()
 {
         command lsx ${PATH//:/ } \
         | command sort -u
 }
 
-Dacti::PrintMenuBinAtimeAsc
+Dacti::PrintMenuBinAtimeAsc ()
 {
         command find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' \
         | command sort -n \
@@ -413,7 +413,7 @@ Dacti::PrintMenuBinAtimeAsc
         | command uniq
 }
 
-Dacti::PrintMenuBinAtimeDesc
+Dacti::PrintMenuBinAtimeDesc ()
 {
         command find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' \
         | command sort -rn \
@@ -422,18 +422,18 @@ Dacti::PrintMenuBinAtimeDesc
         | command uniq
 }
 
-Dacti::PrintMenuBinDesc
+Dacti::PrintMenuBinDesc ()
 {
         command lsx ${PATH//:/ } \
         | command sort -ru
 }
 
-Dacti::PrintVersion
+Dacti::PrintVersion ()
 {
         builtin printf 'v%s\n' "0.2.1"
 }
 
-Dacti::RaiseApp
+Dacti::RaiseApp ()
 {
         builtin typeset \
                 id \
@@ -507,7 +507,7 @@ Dacti::RaiseApp
         esac
 }
 
-Dacti::RaiseAppPl
+Dacti::RaiseAppPl ()
 {
         builtin typeset id
 
@@ -520,7 +520,7 @@ Dacti::RaiseAppPl
         done
 }
 
-Dacti::RaiseAppSg
+Dacti::RaiseAppSg ()
 {
         command wmctrl -i -a "$1" || {
                 launch_status=fail

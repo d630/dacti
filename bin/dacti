@@ -54,7 +54,7 @@ then
                 ( builtin exec ${command[*]} & )
         esac
 else
-        launch_status=fail
+        launch_status=1
 fi
 
 Dacti::GetArgs ()
@@ -179,28 +179,27 @@ do
                 builtin typeset -f Dacti::ParseSelectionCustom 1>/dev/null 2>&1 && {
                         Dacti::ParseSelectionCustom "${selection//[\[\]]/}"
                 }
-                builtin :
         ;;
         "")
-                builtin return 0
+                builtin :
         ;;
         *)
                 Dacti::ParseSelection "$selection"
-                (( $? )) || builtin break
         esac
+        (( $? )) || builtin return 0
 done
 
 Dacti::ParseSelection ()
 {
-        [[ -n $* ]] || builtin return 0
+        [[ -n $* ]] || builtin return 1
 
         builtin typeset \
-                launch_status \
                 opts \
                 pref_status \
                 pref_mode;
 
         builtin typeset -i \
+                launch_status= \
                 pref_idx= \
                 pref_keep= \
                 pref_nterminal= \
@@ -305,7 +304,7 @@ Dacti::ParseSelection ()
 
         case ${App[status]} in
         block)
-                builtin false
+                builtin :
         ;;
         ign)
                 Dacti::ExecApp
@@ -314,16 +313,12 @@ Dacti::ParseSelection ()
                 Dacti::RaiseApp
         ;;
         *)
-                builtin return 1
+                builtin exit 1
         esac
 
-        if
-                [[ ${pref_idx}${pref_pretend}${launch_status} == 10 ]]
-        then
-                Dacti::IndexApp
-        fi
+        [[ ${pref_idx}${pref_pretend}${launch_status} -eq 100 ]] && Dacti::IndexApp
 
-        builtin return 1
+        builtin return "$launch_status"
 }
 
 Dacti::PrintHelp ()
@@ -514,7 +509,7 @@ Dacti::RaiseAppPl ()
         for id
         do
                 Dacti::RaiseAppSg "$id" || {
-                        launch_status=fail
+                        launch_status=1
                         builtin return 1
                 }
         done
@@ -523,7 +518,7 @@ Dacti::RaiseAppPl ()
 Dacti::RaiseAppSg ()
 {
         command wmctrl -i -a "$1" || {
-                launch_status=fail
+                launch_status=1
                 builtin return 1
         }
 }

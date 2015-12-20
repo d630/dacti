@@ -6,51 +6,51 @@ DACTI_INDEX_FILE=${X_XDG_LIB_DIR}/dacti/dacti.index
 DACTI_PRETEND=0
 
 menu=(
-    ADDRESSES
-    BIN-ASC
-    BIN-ATIME-ASC
-    BIN-ATIME-DESC
-    BIN-DESC
-    CALC
-    CLIP
-    FILE
-    KUNO
-    PW
-    RADIO
-    TASK-ADD
-    WEB
-    WECKER
-    Z
+        ADDRESSES
+        BIN-ASC
+        BIN-ATIME-ASC
+        BIN-ATIME-DESC
+        BIN-DESC
+        CALC
+        CLIP
+        FILE
+        KUNO
+        PW
+        RADIO
+        TASK-ADD
+        WEB
+        WECKER
+        Z
 )
 
 function Dacti::CmdMenuCustom ()
 {
-    builtin typeset prompt="$1"
+        builtin typeset prompt="$1"
 
-    case $invocation_mode in
-    cli)
-            command /usr/local/bin/slmenu -b -f -i \
-                    -p "$prompt" \
-                    -nb "#002b36" \
-                    -nf "#839496" \
-                    -sb "#839496" \
-                    -sf "#2C2C2C" \
-                    -uc "#2C2C2C" \
-                    -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*" ;
-    ;;
-    gui)
-            command /usr/local/bin/dmenu2 -b -f -i \
-                    -l "10" \
-                    -p "$prompt" \
-                    -nb "#002b36" \
-                    -nf "#839496" \
-                    -sb "#839496" \
-                    -sf "#2C2C2C" \
-                    -uc "#2C2C2C" \
-                    -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*" \
-                    -name "dacti" \
-                    -class "dacti" ;
-    esac
+        case $invocation_mode in
+        cli)
+                command /usr/local/bin/slmenu -b -f -i \
+                        -p "$prompt" \
+                        -nb "#002b36" \
+                        -nf "#839496" \
+                        -sb "#839496" \
+                        -sf "#2C2C2C" \
+                        -uc "#2C2C2C" \
+                        -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*";
+        ;;
+        gui)
+                command /usr/local/bin/dmenu2 -b -f -i \
+                        -l "10" \
+                        -p "$prompt" \
+                        -nb "#002b36" \
+                        -nf "#839496" \
+                        -sb "#839496" \
+                        -sf "#2C2C2C" \
+                        -uc "#2C2C2C" \
+                        -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*" \
+                        -name "dacti" \
+                        -class "dacti";
+        esac
 }
 
 function Dacti::ParseSelectionCustom ()
@@ -146,7 +146,7 @@ function Dacti::RaiseAppSgCustom ()
         ## dacti wants to raise an single window
 
         command wmctrl -i -a "${xids[0]}" || {
-                launch_status=fail
+                launch_status=1
                 builtin return 1
         }
 }
@@ -160,9 +160,10 @@ function Dacti::RaiseAppPlCustom ()
         for id
         do
                 Dacti::RaiseAppSgCustom "$id" || {
-                        launch_status=fail
+                        launch_status=1
                         builtin return 1
                 }
         done
 }
 
+# vim: set ts=8 sw=8 tw=0 et :

@@ -2,8 +2,6 @@
 
 [dacti](https://github.com/D630/dacti) is a simple menu driven run or raise bash shell script. By default, dacti works with [dmenu](http://tools.suckless.org/dmenu/) and [wmctrl](https://sites.google.com/site/tstyblo/wmctrl/), but you may [configure](../master/doc/examples/dactirc) and use your preferred tools.
 
-I use dacti, because I want to have a DE indepent launcher in addtion to my shell in the terminal (keyboard driven and without much graphical stuff).
-
 ![](https://raw.githubusercontent.com/D630/dacti/master/doc/dacti.png)
 
 (Terminus 16)
@@ -37,7 +35,6 @@ Just put `./bin/dacti` on your PATH.
 
 ```
 dacti [ -h | --help | -v | --version ]
-
 ```
 
 ###### COMMANDS
@@ -78,7 +75,7 @@ Main selecton menu: modifiers
         DACTI_PRETEND                   Default: 0
 ```
 
-###### Configuration
+###### CONFIGURATION
 
 ```
 normal scalar variables
@@ -93,7 +90,7 @@ functions
         Dacti::RaiseAppSgCustom         ""
 ```
 
-###### Index File
+###### INDEX FILE
 
 Without command modifiers, a record gets the status `reg` and the mode `gui` per default (the command has a gui and may run OR raise).
 
@@ -108,7 +105,7 @@ reg tui:n - htop
 reg cli:nk - find
 ```
 
-With a status `ign`, a command is not allowed to raise an existing window. `block` stops raising and running as well.
+With a status `ign`, a command is not allowed to raise an existing window; `block` stops raising and running as well.
 
 If a command has more than one record, the last entry is going to be used.
 
@@ -119,7 +116,7 @@ dacti has been written in [GNU bash](http://www.gnu.org/software/bash/) on [Debi
 - GNU Bash 4.3.42(1)-release
 - GNU coreutils 8.23: cut, mkdir, printf, sort, tty, uniq
 - GNU findutils 4.4.2: find
-- GNU grep 2.21
+- GNU grep 2.22
 - procps 3.3.10: pgrep, ps
 - suckless-tools 40-1: dmenu, lsx
 - wmctrl 1.07-7

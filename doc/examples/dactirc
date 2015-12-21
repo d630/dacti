@@ -13,6 +13,7 @@ menu=(
         BIN-DESC
         CALC
         CLIP
+        INSERT
         FILE
         KUNO
         PW
@@ -40,6 +41,36 @@ function Dacti::CmdMenuCustom ()
         ;;
         gui)
                 command /usr/local/bin/dmenu2 -b -f -i \
+                        -l "10" \
+                        -p "$prompt" \
+                        -nb "#002b36" \
+                        -nf "#839496" \
+                        -sb "#839496" \
+                        -sf "#2C2C2C" \
+                        -uc "#2C2C2C" \
+                        -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*" \
+                        -name "dacti" \
+                        -class "dacti";
+        esac
+}
+
+function Dacti::CmdMenuEmptyCustom ()
+{
+        builtin typeset prompt="$1"
+
+        case $invocation_mode in
+        cli)
+                0<&- command /usr/local/bin/slmenu -b -f -i \
+                        -p "$prompt" \
+                        -nb "#002b36" \
+                        -nf "#839496" \
+                        -sb "#839496" \
+                        -sf "#2C2C2C" \
+                        -uc "#2C2C2C" \
+                        -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*";
+        ;;
+        gui)
+                0<&- command /usr/local/bin/dmenu2 -b -f -i \
                         -l "10" \
                         -p "$prompt" \
                         -nb "#002b36" \

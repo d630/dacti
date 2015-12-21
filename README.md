@@ -49,6 +49,8 @@ Main selection menu: entries
                                         access times
         [BIN-ATIME-DESC]                "" Sort them in descending order by their
                                         access times
+        [INSERT]                        Open a menu with an empty list and insert
+                                        a command
         <COMMAND>                       Launch application (run or raise)
 
 Main selecton menu: modifiers
@@ -85,6 +87,7 @@ indexed array variables
         menu                            See entry section above
 functions
         Dacti::CmdMenuCustom            See doc/examples/dactirc
+        Dacti::CmdMenuEmptyCustom       ""
         Dacti::ParseSelectionCustom     ""
         Dacti::RaiseAppPlCustom         ""
         Dacti::RaiseAppSgCustom         ""

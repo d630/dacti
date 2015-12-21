@@ -36,6 +36,15 @@ else
         command dmenu -p "${1:-$prompt}"
 fi
 
+Dacti::CmdMenuEmpty ()
+if
+        builtin typeset -f Dacti::CmdMenuEmptyCustom 1>/dev/null 2>&1
+then
+        Dacti::CmdMenuEmptyCustom "${1:-$prompt}"
+else
+        command dmenu -p "${1:-$prompt}" 0<&-
+fi
+
 Dacti::ExecApp ()
 if
         command -v "${command[0]}" 1>/dev/null 2>&1
@@ -97,6 +106,7 @@ builtin typeset -a "menu=(
         BIN-ATIME-ASC
         BIN-ATIME-DESC
         BIN-DESC
+        INSERT
 )"
 
 if
@@ -174,6 +184,9 @@ do
                         Dacti::PrintMenuBinDesc \
                         | Dacti::CmdMenu "BIN-DESC"
                 )"
+        ;;
+        \[insert\])
+                Dacti::ParseSelection "$(Dacti::CmdMenuEmpty)"
         ;;
         \[*\])
                 builtin typeset -f Dacti::ParseSelectionCustom 1>/dev/null 2>&1 && {
@@ -336,6 +349,8 @@ Main selection menu: entries
                                         access times
         [BIN-ATIME-DESC]                "" Sort them in descending order by their
                                         access times
+        [INSERT]                        Open a menu with an empty list and insert
+                                        a command
         <COMMAND>                       Launch application (run or raise)
 
 Main selecton menu: modifiers
@@ -366,6 +381,7 @@ Configuration
             menu                        See entry section above
         functions
             Dacti::CmdMenuCustom        See doc/examples/dactirc
+            Dacti::CmdMenuEmptyCustom   ""
             Dacti::ParseSelectionCustom ""
             Dacti::RaiseAppPlCustom     ""
             Dacti::RaiseAppSgCustom     ""

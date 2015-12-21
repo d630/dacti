@@ -111,7 +111,7 @@ reg cli:nk - find
 
 If a command has more than one record, the last entry is going to be used.
 
-The WM_CLASS string is considered an extended regular expression (regex(3)) pattern.
+The WM_CLASS string is considered as extended regular expression pattern (regex(3)).
 
 ##### NOTICE
 

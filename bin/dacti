@@ -299,7 +299,7 @@ Dacti::ParseSelection ()
                 App[class]=-
         else
                 builtin typeset c=${command[0]:0:1}
-                App[class]=${c^}${command[0]:1}
+                App[class]=${command[0]}.${c^}${command[0]:1}
         fi
 
         case ${App[status]} in
@@ -431,6 +431,7 @@ Dacti::PrintVersion ()
 Dacti::RaiseApp ()
 {
         builtin typeset \
+                class \
                 id \
                 pid \
                 wm_pid \
@@ -449,7 +450,11 @@ Dacti::RaiseApp ()
         then
                 for id in ${xlist//,/}
                 do
-                        [[ $(command xprop -id "$id" WM_CLASS) =~ ${App[class]} ]] && {
+                        builtin read -r _ _ class < <(
+                                command xprop -id "$id" WM_CLASS
+                        )
+                        class=${class//\"/}
+                        [[  ${class/, /.} =~ ${App[class]} ]] && {
                                 xids+=( $id )
                         }
                 done

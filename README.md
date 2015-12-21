@@ -92,22 +92,23 @@ functions
 
 ###### INDEX FILE
 
-Without command modifiers, a record gets the status `reg` and the mode `gui` per default (the command has a gui and may run OR raise).
+Without command modifiers, a record gets the status `reg` and the mode `gui` per default (the command has a gui and may run OR raise). With a status `ign`, a command is not allowed to raise an existing window; `block` stops raising and running as well.
 
 A record looks like:
 
 ```
-# STATUS MODE[:MODIFIERS] CLASS COMMAND
+# STATUS MODE[:MODIFIERS] WM_CLASS COMMAND
 
-reg gui chromium-browser chromium
+reg gui chromium-browser.chromium-browser chromium
 ign gui XTerm xterm
+reg gui .*Iceweasel iceweasel
 reg tui:n - htop
 reg cli:nk - find
 ```
 
-With a status `ign`, a command is not allowed to raise an existing window; `block` stops raising and running as well.
-
 If a command has more than one record, the last entry is going to be used.
+
+The WM_CLASS string is considered an extended regular expression (regex(3)) pattern.
 
 ##### NOTICE
 
@@ -118,7 +119,7 @@ dacti has been written in [GNU bash](http://www.gnu.org/software/bash/) on [Debi
 - GNU findutils 4.4.2: find
 - GNU grep 2.22
 - procps 3.3.10: pgrep, ps
-- suckless-tools 40-1: dmenu, lsx
+- suckless-tools 41-1: dmenu, lsx
 - util-linux 2.27.1: setsid
 - wmctrl 1.07-7
 - x11-utils 7.7+3: xprop 1.2.2

@@ -51,16 +51,16 @@ if
 then
         case ${App[nterminal]}${App[keep]} in
         11)
-                ( command setsid ${term} -e "${SHELL:-sh}" -c "${command[*]};${SHELL:-sh}" & )
+                ( builtin exec ${term} -e "${SHELL:-sh}" -c "${command[*]};${SHELL:-sh}" & )
         ;;
         10)
-                ( command setsid ${term} -e "${SHELL:-sh}" -c "${command[*]}" & )
+                ( builtin exec  ${term} -e "${SHELL:-sh}" -c "${command[*]}" & )
         ;;
         01)
-                command setsid ${SHELL:-sh} -c "${command[*]} ; command printf '%s\n' 'Press ENTER to continue' ; builtin read"
+                builtin exec ${SHELL:-sh} -c "${command[*]} ; command printf '%s\n' 'Press ENTER to continue' ; builtin read"
         ;;
         00)
-                ( command setsid ${command[*]} & )
+                ( IFS=" " builtin exec ${command[*]} & )
         esac
 else
         launch_status=1
@@ -441,7 +441,7 @@ Dacti::PrintMenuBinDesc ()
 
 Dacti::PrintVersion ()
 {
-        builtin printf 'v%s\n' "0.2.2"
+        builtin printf 'v%s\n' "0.2.3"
 }
 
 Dacti::RaiseApp ()

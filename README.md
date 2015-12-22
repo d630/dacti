@@ -123,7 +123,6 @@ dacti has been written in [GNU bash](http://www.gnu.org/software/bash/) on [Debi
 - GNU grep 2.22
 - procps 3.3.10: pgrep, ps
 - suckless-tools 41-1: dmenu-4.6, lsx 0.1
-- util-linux 2.27.1: setsid
 - wmctrl 1.07-7
 - x11-utils 7.7+3: xprop 1.2.2
 

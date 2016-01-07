@@ -65,7 +65,13 @@ then
                 builtin exec ${SHELL:-sh} -c "${command[*]} ; command printf '%s\n' 'Press ENTER to continue' ; builtin read"
         ;;
         00)
-                ( IFS=" " builtin exec ${command[*]} & )
+                if
+                        [[ $invocation_mode == cli ]]
+                then
+                        IFS=" " builtin exec ${command[*]}
+                else
+                        ( IFS=" " builtin exec ${command[*]} & )
+                fi
         esac
 else
         launch_status=1
@@ -265,7 +271,7 @@ Dacti::ParseSelection ()
         }
 
         if
-                (( pref_pretend == 0 || pref_idx == 0 ))
+                (( pref_pretend + pref_idx == 0 ))
         then
                 builtin typeset \
                         idx_app \
@@ -447,7 +453,7 @@ Dacti::PrintMenuBinDesc ()
 
 Dacti::PrintVersion ()
 {
-        builtin printf 'v%s\n' "0.2.4"
+        builtin printf 'v%s\n' "0.2.5"
 }
 
 Dacti::RaiseApp ()

@@ -60,7 +60,7 @@ function Dacti::CmdMenuEmptyCustom
 
         case $invocation_mode in
         cli)
-                0<&- command /usr/local/bin/slmenu -b -f -i \
+                <<< " " command /usr/local/bin/slmenu -b -f -i \
                         -p "$prompt" \
                         -nb "#002b36" \
                         -nf "#839496" \

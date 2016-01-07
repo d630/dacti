@@ -24,7 +24,7 @@ menu=(
         Z
 )
 
-function Dacti::CmdMenuCustom ()
+function Dacti::CmdMenuCustom
 {
         builtin typeset prompt="$1"
 
@@ -54,7 +54,7 @@ function Dacti::CmdMenuCustom ()
         esac
 }
 
-function Dacti::CmdMenuEmptyCustom ()
+function Dacti::CmdMenuEmptyCustom
 {
         builtin typeset prompt="$1"
 
@@ -84,7 +84,7 @@ function Dacti::CmdMenuEmptyCustom ()
         esac
 }
 
-function Dacti::ParseSelectionCustom ()
+function Dacti::ParseSelectionCustom
 {
         builtin typeset selection="$@"
 
@@ -92,29 +92,37 @@ function Dacti::ParseSelectionCustom ()
         z)
                 builtin exec z-fm.sh
         ;;
-        clip)
-                builtin exec clipbored.sh
+        clips)
+                builtin exec clipbuffer.sh
         ;;
         web)
                 if
                         [[ $invocation_mode == cli ]]
                 then
-                        builtin exec furlview.sh "${X_XDG_LOG_HOME}/urls.log"
+                        builtin exec furlview.sh "${HOME}/local/var/log/urls.log" 2>/dev/null
                 elif
                         [[ $invocation_mode == gui ]]
                 then
-                        command xterm -name "furlview-xterm" -e "furlview.sh "${X_XDG_LOG_HOME}/urls.log";exit;bash"
-                        builtin exit 0
+                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" \
+                                -c "furlview.sh ${HOME}/local/var/log/urls.log;read" 2>/dev/null
+                fi
+        ;;
+        c-web)
+                if
+                        [[ $invocation_mode == cli ]]
+                then
+                        builtin exec chromium-history.sh 2>/dev/null
+                elif
+                        [[ $invocation_mode == gui ]]
+                then
+                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" -c "chromium-history.sh;read" 2>/dev/null
                 fi
         ;;
         radio)
-                builtin exec webradio.sh
-        ;;
-        file)
-                builtin exec special-files.sh
+                builtin exec wradio.sh
         ;;
         pw)
-                builtin exec pass-c.sh
+                builtin exec pass-cp.sh
         ;;
         addresses)
                 if
@@ -124,8 +132,7 @@ function Dacti::ParseSelectionCustom ()
                 elif
                         [[ $invocation_mode == gui ]]
                 then
-                        ( builtin exec ${term} -e "${SHELL:-sh}" -c nottoomuch-wrapper.sh 2>/dev/null & )
-                        builtin exit 0
+                        builtin exec fork.sh ${term} -e nottoomuch-wrapper.sh 2>/dev/null
                 fi
         ;;
         task-add)
@@ -136,8 +143,18 @@ function Dacti::ParseSelectionCustom ()
                 elif
                         [[ $invocation_mode == gui ]]
                 then
-                        ( builtin exec ${term} -e "${SHELL:-sh}" -c taskwarrior-add.sh 2>/dev/null & )
-                        builtin exit 0
+                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" -c "taskwarrior-add.sh;read" 2>/dev/null
+                fi
+        ;;
+        task-log)
+                if
+                        [[ $invocation_mode == cli ]]
+                then
+                        builtin exec taskwarrior-log.sh
+                elif
+                        [[ $invocation_mode == gui ]]
+                then
+                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" -c "taskwarrior-log.sh;read" 2>/dev/null
                 fi
         ;;
         kuno)
@@ -148,12 +165,19 @@ function Dacti::ParseSelectionCustom ()
                 elif
                         [[ $invocation_mode == gui ]]
                 then
-                        ( builtin exec ${term} -e "${SHELL:-sh}" -c kuno.sh 2>/dev/null & )
-                        builtin exit 0
+                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" -c "kuno.sh;read" 2>/dev/null
                 fi
         ;;
         wecker)
-                builtin exec wecker-gui.sh
+                if
+                        [[ $invocation_mode == cli ]]
+                then
+                        builtin exec wakeup.sh
+                elif
+                        [[ $invocation_mode == gui ]]
+                then
+                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" -c "wakeup.sh;read" 2>/dev/null
+                fi
         ;;
         calc)
                 if
@@ -163,8 +187,7 @@ function Dacti::ParseSelectionCustom ()
                 elif
                         [[ $invocation_mode == gui ]]
                 then
-                        ( builtin exec ${term} -e "${SHELL:-sh}" -c calc.sh 2>/dev/null & )
-                        builtin exit 0
+                        builtin exec fork.sh ${term} -e calc.sh 2>/dev/null
                 fi
         ;;
         *)
@@ -172,9 +195,9 @@ function Dacti::ParseSelectionCustom ()
         esac
 }
 
-function Dacti::RaiseAppSgCustom ()
+function Dacti::RaiseAppSgCustom
 {
-        ## dacti wants to raise an single window
+        ## dacti wants to raise a single window
 
         command wmctrl -i -a "${xids[0]}" || {
                 launch_status=1
@@ -182,9 +205,9 @@ function Dacti::RaiseAppSgCustom ()
         }
 }
 
-function Dacti::RaiseAppPlCustom ()
+function Dacti::RaiseAppPlCustom
 {
-        ## dacti has detected at leat two windows to raise
+        ## dacti has detected at least two windows to raise
 
         builtin typeset id
 

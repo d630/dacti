@@ -118,7 +118,7 @@ The WM_CLASS string is considered as extended regular expression pattern (regex(
 dacti has been written in [GNU bash](http://www.gnu.org/software/bash/) on [Debian GNU/Linux 9 (stretch/sid)](https://www.debian.org) using these programs/packages:
 
 - GNU Bash 4.3.42(1)-release
-- GNU coreutils 8.23: cut, mkdir, printf, sort, tty, uniq
+- GNU coreutils 8.23: cut, mkdir, printf, sort, uniq
 - GNU findutils 4.4.2: find
 - GNU grep 2.22
 - procps 3.3.10: pgrep, ps

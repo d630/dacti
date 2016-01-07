@@ -25,6 +25,11 @@
 #         -e "^FUNCNAME=" | \
 #less
 
+[[ ${BASH_SOURCE[0]} == $0 ]] || {
+        builtin printf '%s\n' "Error: Do not execute dacti via source" 1>&2
+        builtin return 1 2>/dev/null
+}
+
 # -- FUNCTIONS.
 
 Dacti::CmdMenu ()
@@ -109,8 +114,9 @@ builtin typeset -a "menu=(
         INSERT
 )"
 
+invocation_mode=$(command ps -p "$PPID" -o tty=)
 if
-        command tty -s
+        [[ -n ${invocation_mode/\?/} ]]
 then
         invocation_mode=cli
 elif
@@ -441,7 +447,7 @@ Dacti::PrintMenuBinDesc ()
 
 Dacti::PrintVersion ()
 {
-        builtin printf 'v%s\n' "0.2.3"
+        builtin printf 'v%s\n' "0.2.4"
 }
 
 Dacti::RaiseApp ()

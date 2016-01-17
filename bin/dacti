@@ -423,7 +423,7 @@ Dacti::PrintMenu0 ()
 
 Dacti::PrintMenuBinAsc ()
 {
-        command lsx ${PATH//:/ } \
+        command stest -flx ${PATH//:/ } \
         | command sort -u
 }
 
@@ -432,7 +432,7 @@ Dacti::PrintMenuBinAtimeAsc ()
         command find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' \
         | command sort -n \
         | command cut -f2 \
-        | command fgrep -xf <(command lsx ${PATH//:/ }) \
+        | command fgrep -xf <(command stest -flx ${PATH//:/ }) \
         | command uniq
 }
 
@@ -441,19 +441,19 @@ Dacti::PrintMenuBinAtimeDesc ()
         command find ${PATH//:/ } \( -type f -o -type l \) -printf '%A@\t%P\n' \
         | command sort -rn \
         | command cut -f2 \
-        | command fgrep -xf <(command lsx ${PATH//:/ }) \
+        | command fgrep -xf <(command stest -flx ${PATH//:/ }) \
         | command uniq
 }
 
 Dacti::PrintMenuBinDesc ()
 {
-        command lsx ${PATH//:/ } \
+        command stest -flx ${PATH//:/ } \
         | command sort -ru
 }
 
 Dacti::PrintVersion ()
 {
-        builtin printf 'v%s\n' "0.2.5"
+        builtin printf 'v%s\n' "0.2.6"
 }
 
 Dacti::RaiseApp ()

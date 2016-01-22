@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-term=stt
+term=terminal.sh
 prompt=\>
 DACTI_INDEX_FILE=${X_XDG_LIB_DIR}/dacti/dacti.index
 DACTI_PRETEND=0
@@ -28,27 +28,42 @@ function Dacti::CmdMenuCustom
 {
         builtin typeset prompt="$1"
 
+        # Solarized Light/Dark
+        if
+                [[ -f /tmp/DAYLIGHT ]]
+        then
+                builtin typeset \
+                        nb="#FDF6E3" \
+                        nf="#657B83" \
+                        sb="#EEE8D5" \
+                        sf="#B58900" \
+                        uc="#B58900" \
+                        fn="-xos4-terminus-medium-r-normal-*-14-*-*-*-*-*-*-*";
+        else
+                builtin typeset \
+                        nb="#002B36" \
+                        nf="#839496" \
+                        sb="#073642" \
+                        sf="#859900" \
+                        uc="#859900" \
+                        fn="-xos4-terminus-medium-r-normal-*-14-*-*-*-*-*-*-*";
+        fi
+
         case $invocation_mode in
         cli)
-                command /usr/local/bin/slmenu -b -f -i \
-                        -p "$prompt" \
-                        -nb "#002b36" \
-                        -nf "#839496" \
-                        -sb "#839496" \
-                        -sf "#2C2C2C" \
-                        -uc "#2C2C2C" \
-                        -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*";
+                command /usr/local/bin/slmenu -b -i \
+                        -p "$prompt" ;
         ;;
         gui)
                 command /usr/local/bin/dmenu2 -b -f -i \
                         -l "10" \
                         -p "$prompt" \
-                        -nb "#002b36" \
-                        -nf "#839496" \
-                        -sb "#839496" \
-                        -sf "#2C2C2C" \
-                        -uc "#2C2C2C" \
-                        -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*" \
+                        -nb "$nb" \
+                        -nf "$nf" \
+                        -sb "$sb" \
+                        -sf "$sf" \
+                        -uc "$uc" \
+                        -fn "$fn" \
                         -name "dacti" \
                         -class "dacti";
         esac
@@ -60,27 +75,10 @@ function Dacti::CmdMenuEmptyCustom
 
         case $invocation_mode in
         cli)
-                <<< " " command /usr/local/bin/slmenu -b -f -i \
-                        -p "$prompt" \
-                        -nb "#002b36" \
-                        -nf "#839496" \
-                        -sb "#839496" \
-                        -sf "#2C2C2C" \
-                        -uc "#2C2C2C" \
-                        -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*";
+                <<< "" Dacti::CmdMenuCustom "$1"
         ;;
         gui)
-                0<&- command /usr/local/bin/dmenu2 -b -f -i \
-                        -l "10" \
-                        -p "$prompt" \
-                        -nb "#002b36" \
-                        -nf "#839496" \
-                        -sb "#839496" \
-                        -sf "#2C2C2C" \
-                        -uc "#2C2C2C" \
-                        -fn "-xos4-terminus-medium-r-normal-*-18-*-*-*-*-*-iso10646-*" \
-                        -name "dacti" \
-                        -class "dacti";
+                0<&- Dacti::CmdMenuCustom "$1"
         esac
 }
 

@@ -1,221 +1,200 @@
 #!/usr/bin/env bash
 
-term=terminal.sh
-prompt=\>
-DACTI_INDEX_FILE=${X_XDG_LIB_DIR}/dacti/dacti.index
-DACTI_PRETEND=0
+term=x-terminal;
+prompt=\>;
+DACTI_INDEX_FILE=${XDG_VAR_HOME:?}/lib/dacti/dacti.index;
+DACTI_PRETEND=0;
 
 menu=(
-        ADDRESSES
-        BIN-ASC
-        BIN-ATIME-ASC
-        BIN-ATIME-DESC
-        BIN-DESC
-        CALC
-        CLIP
-        INSERT
-        FILE
-        KUNO
-        PW
-        RADIO
-        TASK-ADD
-        WEB
-        WECKER
-        Z
-)
+    BIN-ASC
+    BIN-ATIME-ASC
+    BIN-ATIME-DESC
+    BIN-DESC
+    C-WEB
+    CLIPS
+    INSERT
+    PW
+    PW-CLIP
+    RADIO
+    TASK-ADD
+    TASK-LOG
+    WEB
+    WECKER
+    Z
+);
 
 function Dacti::CmdMenuCustom
-{
-        builtin typeset prompt="$1"
-
-        # Solarized Light/Dark
-        if
-                [[ -f /tmp/DAYLIGHT ]]
-        then
-                builtin typeset \
-                        nb="#FDF6E3" \
-                        nf="#657B83" \
-                        sb="#EEE8D5" \
-                        sf="#B58900" \
-                        uc="#B58900" \
-                        fn="-xos4-terminus-medium-r-normal-*-14-*-*-*-*-*-*-*";
-        else
-                builtin typeset \
-                        nb="#002B36" \
-                        nf="#839496" \
-                        sb="#073642" \
-                        sf="#859900" \
-                        uc="#859900" \
-                        fn="-xos4-terminus-medium-r-normal-*-14-*-*-*-*-*-*-*";
-        fi
-
-        case $invocation_mode in
-        cli)
-                command /usr/local/bin/slmenu -b -i \
-                        -p "$prompt" ;
-        ;;
-        gui)
-                command /usr/local/bin/dmenu2 -b -f -i \
-                        -l "10" \
-                        -p "$prompt" \
-                        -nb "$nb" \
-                        -nf "$nf" \
-                        -sb "$sb" \
-                        -sf "$sf" \
-                        -uc "$uc" \
-                        -fn "$fn" \
-                        -name "dacti" \
-                        -class "dacti";
-        esac
-}
+case $in_tty in
+    (\?)
+        /usr/local/bin/dmenu2 -b -f -i \
+            -l "10" \
+            -p "$1" \
+            -fn "-xos4-terminus-medium-r-normal-*-16-*-*-*-*-*-iso10646-*" \
+            -name "dacti" \
+            -class "dacti";;
+    (*)
+        /usr/local/bin/slmenu -b -i -p "$1";;
+esac;
 
 function Dacti::CmdMenuEmptyCustom
-{
-        builtin typeset prompt="$1"
+case $in_tty in
+    (\?)
+        0<&- /usr/local/bin/dmenu2 -b -f -i \
+            -l "10" \
+            -p "$1" \
+            -fn "-xos4-terminus-medium-r-normal-*-16-*-*-*-*-*-iso10646-*" \
+            -name "dacti" \
+            -class "dacti";;
+    (*)
+        <<< "" /usr/local/bin/slmenu -b -i -p "$1";;
+esac;
 
-        case $invocation_mode in
-        cli)
-                <<< "" Dacti::CmdMenuCustom "$1"
-        ;;
-        gui)
-                0<&- Dacti::CmdMenuCustom "$1"
-        esac
-}
+function Dacti::ExecAppCustom {
+    command -v "$command" 1>/dev/null 2>&1 ||
+        return 1;
 
-function Dacti::ParseSelectionCustom
-{
-        builtin typeset selection="$@"
+    IFS=' ';
 
-        case ${selection,,} in
-        z)
-                builtin exec z-fm.sh
-        ;;
-        clips)
-                builtin exec clipbuffer.sh
-        ;;
-        web)
-                if
-                        [[ $invocation_mode == cli ]]
-                then
-                        builtin exec furlview.sh "${HOME}/local/var/log/urls.log" 2>/dev/null
-                elif
-                        [[ $invocation_mode == gui ]]
-                then
-                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" \
-                                -c "furlview.sh ${HOME}/local/var/log/urls.log;read" 2>/dev/null
-                fi
-        ;;
-        c-web)
-                if
-                        [[ $invocation_mode == cli ]]
-                then
-                        builtin exec chromium-history.sh 2>/dev/null
-                elif
-                        [[ $invocation_mode == gui ]]
-                then
-                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" -c "chromium-history.sh;read" 2>/dev/null
-                fi
-        ;;
-        radio)
-                builtin exec wradio.sh
-        ;;
-        pw)
-                builtin exec pass-cp.sh
-        ;;
-        addresses)
-                if
-                        [[ $invocation_mode == cli ]]
-                then
-                        builtin exec nottoomuch-wrapper.sh
-                elif
-                        [[ $invocation_mode == gui ]]
-                then
-                        builtin exec fork.sh ${term} -e nottoomuch-wrapper.sh 2>/dev/null
-                fi
-        ;;
-        task-add)
-                if
-                        [[ $invocation_mode == cli ]]
-                then
-                        builtin exec taskwarrior-add.sh
-                elif
-                        [[ $invocation_mode == gui ]]
-                then
-                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" -c "taskwarrior-add.sh;read" 2>/dev/null
-                fi
-        ;;
-        task-log)
-                if
-                        [[ $invocation_mode == cli ]]
-                then
-                        builtin exec taskwarrior-log.sh
-                elif
-                        [[ $invocation_mode == gui ]]
-                then
-                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" -c "taskwarrior-log.sh;read" 2>/dev/null
-                fi
-        ;;
-        kuno)
-                if
-                        [[ $invocation_mode == cli ]]
-                then
-                        builtin exec kuno.sh
-                elif
-                        [[ $invocation_mode == gui ]]
-                then
-                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" -c "kuno.sh;read" 2>/dev/null
-                fi
-        ;;
-        wecker)
-                if
-                        [[ $invocation_mode == cli ]]
-                then
-                        builtin exec wakeup.sh
-                elif
-                        [[ $invocation_mode == gui ]]
-                then
-                        builtin exec fork.sh ${term} -e "${SHELL:-sh}" -c "wakeup.sh;read" 2>/dev/null
-                fi
-        ;;
-        calc)
-                if
-                        [[ $invocation_mode == cli ]]
-                then
-                        builtin exec calc.sh
-                elif
-                        [[ $invocation_mode == gui ]]
-                then
-                        builtin exec fork.sh ${term} -e calc.sh 2>/dev/null
-                fi
-        ;;
-        *)
-                builtin return 1
-        esac
-}
+    case ${App[flags]} in
+        (nk)
+            exec $term -e "${SHELL:-sh}" -c "${command[*]};${SHELL:-sh}" &;;
+        (n)
+            exec $term -e "${SHELL:-sh}" -c "${command[*]}" &;;
+        (k)
+            if
+                [[ ${App[mode]} == tui && $in_tty == \? ]];
+            then
+                exec $term -e "${SHELL:-sh}" -c "${command[*]};command printf 'Press ENTER to continue\n';read" &
+            else
+                exec ${SHELL:-sh} -c "${command[*]};command printf 'Press ENTER to continue\n';read";
+            fi;;
+        ('')
+            case $in_tty in
+                (\?)
+                    if
+                        [[ ${App[mode]} == tui ]];
+                    then
+                        exec $term -e "${SHELL:-sh}" -c "${command[*]}" &
+                    else
+                        exec "${command[@]}" &
+                    fi;;
+                (*)
+                    exec "${command[@]}";;
+            esac;;
+    esac;
+};
 
-function Dacti::RaiseAppSgCustom
-{
-        ## dacti wants to raise a single window
+function Dacti::ParseSelectionCustom {
+    typeset selection="$@";
 
-        command wmctrl -i -a "${xids[0]}" || {
-                launch_status=1
-                builtin return 1
-        }
-}
+    case ${selection,,} in
+        (z)
+            exec z-run;;
+        (clips)
+            exec clipbuffer;;
+        (web)
+            case $in_tty in
+                (\?)
+                    exec setsidw ${term} -e "${SHELL:-sh}" \
+                        -c "furlview ${XDG_VAR_HOME}/log/urls.log;read" 2>/dev/null;;
+                (*)
+                    exec furlview "${XDG_VAR_HOME}/log/urls.log" 2>/dev/null;;
+            esac;;
+        (c-web)
+            case $in_tty in
+                (\?)
+                    exec setsidw ${term} -e "${SHELL:-sh}" \
+                        -c "chromium-mselect-history;read" 2>/dev/null;;
+                (*)
+                    exec chromium-mselect-history 2>/dev/null;;
+            esac;;
+        (radio)
+            exec wradio;;
+        (pw)
+            exec pass-copy --type;;
+        (pw-clip)
+            exec pass-copy;;
+        (task-add)
+            case $in_tty in
+                (\?)
+                    exec setsidw ${term} -e "${SHELL:-sh}" \
+                        -c "taskwarrior-add;read" 2>/dev/null;;
+                (*)
+                    exec taskwarrior-add;;
+            esac;;
+        (task-log)
+            case $in_tty in
+                (\?)
+                    exec setsidw ${term} -e "${SHELL:-sh}" \
+                        -c "taskwarrior-log;read" 2>/dev/null;;
+                (*)
+                    exec taskwarrior-log;;
+            esac;;
+        (wecker)
+            case $in_tty in
+                (\?)
+                    exec setsidw ${term} -e "${SHELL:-sh}" \
+                        -c "rtcwakew;read" 2>/dev/null;;
+                (*)
+                    rtcwakew;;
+            esac;;
+        (*)
+            return 1;
+    esac;
+};
 
-function Dacti::RaiseAppPlCustom
-{
-        ## dacti has detected at least two windows to raise
+function Dacti::RaiseAppCustom {
+    typeset \
+        class \
+        id \
+        pid \
+        wm_pid \
+        xlist;
 
-        builtin typeset id
+    typeset -a \
+        pid_list \
+        xids;
 
-        for id
-        do
-                Dacti::RaiseAppSgCustom "$id" || {
-                        launch_status=1
-                        builtin return 1
-                }
-        done
-}
+    read -r _ _ _ _ xlist < <(command xprop -root _NET_CLIENT_LIST);
 
-# vim: set ts=8 sw=8 tw=0 et :
+    if
+        [[ ${App[mode]} == gui ]];
+    then
+        for id in ${xlist//,/}; do
+            read -r _ _ class < <(command xprop -id "$id" WM_CLASS);
+            class=${class//\"/};
+            [[ ${class/, /.} =~ ${App[class]} ]] &&
+                xids+=($id);
+        done;
+    else
+        for pid in $(command pgrep -d ' ' "$command"); do
+            until
+                [[ ${pid// /} -eq 0 ]];
+            do
+                pid=$(2>/dev/null command ps -p "${pid// /}" -o ppid=);
+                pid_list+=(${pid// /});
+            done;
+        done;
+        for id in ${xlist//,/}; do
+            read -r _ _ wm_pid < <(command xprop -id "$id" _NET_WM_PID);
+            for pid in "${pid_list[@]}"; do
+                [[ $wm_pid == $pid ]] &&
+                    xids+=($id);
+            done;
+        done;
+    fi;
+
+    case ${#xids[@]} in
+        (0)
+            Dacti::ExecApp;;
+        (1)
+            command wmctrl -i -a "$xids";;
+        (*)
+            for id in "${xids[@]}"; do
+                command wmctrl -i -a "$id" ||
+                    return $?;
+            done;
+    esac;
+};
+
+# vim: set ts=4 sw=4 tw=0 et :

@@ -49,106 +49,111 @@ case $in_tty in
         <<< "" /usr/local/bin/slmenu -b -i -p "$1";;
 esac;
 
-function Dacti::ExecAppCustom {
+function Dacti::ExecAppCustom () (
     command -v "$command" 1>/dev/null 2>&1 ||
         return 1;
 
     IFS=' ';
 
-    case ${App[flags]} in
-        (nk)
-            exec $term -e "${SHELL:-sh}" -c "${command[*]};${SHELL:-sh}" &;;
-        (n)
+    case ${App[keep]}${App[nterminal]}${App[terminal]} in
+        (nt)
             exec $term -e "${SHELL:-sh}" -c "${command[*]}" &;;
         (k)
-            if
-                [[ ${App[mode]} == tui && $in_tty == \? ]];
-            then
-                exec $term -e "${SHELL:-sh}" -c "${command[*]};command printf 'Press ENTER to continue\n';read" &
-            else
-                exec ${SHELL:-sh} -c "${command[*]};command printf 'Press ENTER to continue\n';read";
-            fi;;
-        ('')
+            exec ${SHELL:-sh} -c "${command[*]};printf 'Press ENTER to continue\n';read";;
+        (knt)
+            exec $term -e "${SHELL:-sh}" -c "${command[*]};${SHELL:-sh}" &;;
+        (t)
             case $in_tty in
                 (\?)
-                    if
-                        [[ ${App[mode]} == tui ]];
-                    then
-                        exec $term -e "${SHELL:-sh}" -c "${command[*]}" &
-                    else
-                        exec "${command[@]}" &
-                    fi;;
+                    exec $term -e "${SHELL:-sh}" -c "${command[*]}" &;;
                 (*)
                     exec "${command[@]}";;
             esac;;
-    esac;
-};
+        (kt)
+            case $in_tty in
+                (\?)
+                    exec $term -e "${SHELL:-sh}" -c "${command[*]};${SHELL:-sh}" &;;
+                (*)
+                    exec ${SHELL:-sh} -c "${command[*]};printf 'Press ENTER to continue\n';read";;
+            esac;;
+        ('')
+            case $in_tty in
+                (\?)
+                    exec "${command[@]}" &;;
+                (*)
+                    exec "${command[@]}";;
+            esac;;
 
-function Dacti::ParseSelectionCustom {
-    typeset selection="$@";
-
-    case ${selection,,} in
-        (z)
-            exec z-run;;
-        (clips)
-            exec clipbuffer;;
-        (web)
-            case $in_tty in
-                (\?)
-                    exec setsidw ${term} -e "${SHELL:-sh}" \
-                        -c "furlview ${XDG_VAR_HOME}/log/urls.log;read" 2>/dev/null;;
-                (*)
-                    exec furlview "${XDG_VAR_HOME}/log/urls.log" 2>/dev/null;;
-            esac;;
-        (c-web)
-            case $in_tty in
-                (\?)
-                    exec setsidw ${term} -e "${SHELL:-sh}" \
-                        -c "chromium-mselect-history;read" 2>/dev/null;;
-                (*)
-                    exec chromium-mselect-history 2>/dev/null;;
-            esac;;
-        (radio)
-            exec wradio;;
-        (pw)
-            exec pass-copy --type;;
-        (pw-clip)
-            exec pass-copy;;
-        (task-add)
-            case $in_tty in
-                (\?)
-                    exec setsidw ${term} -e "${SHELL:-sh}" \
-                        -c "taskwarrior-add;read" 2>/dev/null;;
-                (*)
-                    exec taskwarrior-add;;
-            esac;;
-        (task-log)
-            case $in_tty in
-                (\?)
-                    exec setsidw ${term} -e "${SHELL:-sh}" \
-                        -c "taskwarrior-log;read" 2>/dev/null;;
-                (*)
-                    exec taskwarrior-log;;
-            esac;;
-        (wecker)
-            case $in_tty in
-                (\?)
-                    exec setsidw ${term} -e "${SHELL:-sh}" \
-                        -c "rtcwakew;read" 2>/dev/null;;
-                (*)
-                    rtcwakew;;
-            esac;;
-        (*)
-            return 1;
     esac;
-};
+);
+
+function Dacti::ParseSelectionCustom
+case ${1,,} in
+    (z)
+        z-run;;
+    (clips)
+        clipbuffer;;
+    (web)
+        case $in_tty in
+            (\?)
+                exec setsidw ${term} -e "${SHELL:-sh}" \
+                    -c "furlview ${XDG_VAR_HOME}/log/urls.log;read" 2>/dev/null;;
+            (*)
+                furlview "${XDG_VAR_HOME}/log/urls.log" 2>/dev/null;;
+        esac;;
+    (c-web)
+        case $in_tty in
+            (\?)
+                exec setsidw ${term} -e "${SHELL:-sh}" \
+                    -c "chromium-mselect-history;read" 2>/dev/null;;
+            (*)
+                chromium-mselect-history 2>/dev/null;;
+        esac;;
+    (radio)
+        wradio;;
+    (pw)
+        pass-copy --type;;
+    (pw-clip)
+        pass-copy;;
+    (task-add)
+        case $in_tty in
+            (\?)
+                exec setsidw ${term} -e "${SHELL:-sh}" \
+                    -c "taskwarrior-add;read" 2>/dev/null;;
+            (*)
+                taskwarrior-add;;
+        esac;;
+    (task-log)
+        case $in_tty in
+            (\?)
+                exec setsidw ${term} -e "${SHELL:-sh}" \
+                    -c "taskwarrior-log;read" 2>/dev/null;;
+            (*)
+                taskwarrior-log;;
+        esac;;
+    (wecker)
+        case $in_tty in
+            (\?)
+                exec setsidw ${term} -e "${SHELL:-sh}" \
+                    -c "rtcwakew;read" 2>/dev/null;;
+            (*)
+                rtcwakew;;
+        esac;;
+    (*)
+        ! :;;
+esac;
 
 function Dacti::RaiseAppCustom {
+    [[ -n $DISPLAY ]] || {
+        Dacti::ExecAppCustom;
+        return $?;
+    };
+
     typeset \
         class \
-        id \
         pid \
         wm_pid \
+        xid \
         xlist;
 
     typeset -a \
@@ -158,13 +163,13 @@ function Dacti::RaiseAppCustom {
     read -r _ _ _ _ xlist < <(command xprop -root _NET_CLIENT_LIST);
 
     if
-        [[ ${App[mode]} == gui ]];
+        [[ -n ${App[display]} ]];
     then
-        for id in ${xlist//,/}; do
-            read -r _ _ class < <(command xprop -id "$id" WM_CLASS);
+        for xid in ${xlist//,/}; do
+            read -r _ _ class < <(command xprop -id "$xid" WM_CLASS);
             class=${class//\"/};
             [[ ${class/, /.} =~ ${App[class]} ]] &&
-                xids+=($id);
+                xids+=($xid);
         done;
     else
         for pid in $(command pgrep -d ' ' "$command"); do
@@ -175,11 +180,11 @@ function Dacti::RaiseAppCustom {
                 pid_list+=(${pid// /});
             done;
         done;
-        for id in ${xlist//,/}; do
-            read -r _ _ wm_pid < <(command xprop -id "$id" _NET_WM_PID);
+        for xid in ${xlist//,/}; do
+            read -r _ _ wm_pid < <(command xprop -id "$xid" _NET_WM_PID);
             for pid in "${pid_list[@]}"; do
                 [[ $wm_pid == $pid ]] &&
-                    xids+=($id);
+                    xids+=($xid);
             done;
         done;
     fi;
@@ -190,7 +195,7 @@ function Dacti::RaiseAppCustom {
         (1)
             command wmctrl -i -a "$xids";;
         (*)
-            for id in "${xids[@]}"; do
+            for xid in "${xids[@]}"; do
                 command wmctrl -i -a "$id" ||
                     return $?;
             done;

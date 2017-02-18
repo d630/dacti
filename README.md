@@ -39,39 +39,37 @@ Just put `./bin/dacti` on your PATH.
 ###### INVOCATION
 
 ```
-dacti [ -h | --help | -v | --version ]
+dacti [ -h | --help ]
 ```
 
 ###### COMMANDS
 
 ```
 Main selection menu: entries
-    [BIN-ASC]                       Browse executables within PATH. Sort
+    BIN-ASC                         Browse executables within PATH. Sort
                                     them in ascending order by their names.
-    [BIN-DESC]                      "" Sort them in descending order by their
+    BIN-DESC                        "" Sort them in descending order by their
                                     names.
-    [BIN-ATIME-ASC]                 "" Sort them in ascending order by their
+    BIN-ATIME-ASC                   "" Sort them in ascending order by their
                                     access times.
-    [BIN-ATIME-DESC]                "" Sort them in descending order by their
+    BIN-ATIME-DESC                  "" Sort them in descending order by their
                                     access times.
-    [INSERT]                        Open a menu with an empty list and insert
+    INSERT                          Open a menu with an empty list and insert
                                     a command.
-    <COMMAND>                       Launch application (run or raise).
+    [:MODIFIERS ]COMMAND            Launch application (run or raise) from
+                                    DACTI_INDEX_FILE.
 
 Main selecton menu: modifiers
-    :c                              Declare mode 'cli'.
-    :i                              Declare status 'ign'.
-    :k                              Keep the process. Wait for a key press
+    i                               Declare status 'ign'.
+    k                               Keep the process. Wait for a key press
                                     or spawn a new shell instance.
-    :n                              Run COMMAND in a new terminal emulator
+    d                               COMMAND depends on DISPLAY.
+    n                               Run COMMAND in a new terminal emulator
                                     window.
-    :p                              Don't check, whether COMMAND is indexed.
-                                    Launch it directly and create NO record.
-                                    See also env variable DACTI_PRETEND.
-    :t                              Declare mode 'tui'.
-    :u                              Don't check, whether COMMAND is indexed.
-                                    Launch it directly and create a new
+    p                               Launch COMMAND directly and create NO
                                     record.
+                                    See also env variable DACTI_PRETEND.
+    t                               COMMAND needs a controlling tty.
 ```
 
 ###### ENVIRONMENT VARIABLES
@@ -80,7 +78,6 @@ Main selecton menu: modifiers
     DACTI_CONF_FILE                 See function Dacti::Main
     DACTI_INDEX_FILE                ""
     DACTI_PRETEND                   Default: 0
-
 ```
 
 ###### CONFIGURATION
@@ -100,24 +97,21 @@ Configuration
         apps                        All app names from DACTI_INDEX_FILE.
         command                     Selected/Typed command list without prefixed
                                     modifiers.
-        menu                        See entry section above. Default:
-                                    BIN-ASC
-                                    BIN-ATIME-ASC
-                                    BIN-ATIME-DESC
-                                    BIN-DESC
-                                    INSERT
+        menu                        See entry section above.
     associative array variables
         App                         Parsed preferences for COMMAND:
-                                    <status>
-                                    <mode>
-                                    <flags>
                                     <class>
+                                    <display>
+                                    <flags>
+                                    <keep>
+                                    <nterminal>
+                                    <status>
+                                    <terminal>
         DactiApps                   Mapped entries from DACTI_INDEX_FILE:
-                                    <status COMMAND>
-                                    <mode COMMAND>
-                                    <FLAGS COMMAND>
-                                    <class COMMAND>
                                     <app COMMAND>
+                                    <class COMMAND>
+                                    <flags COMMAND>
+                                    <status COMMAND>
     functions
         Dacti::CmdMenuCustom        See doc/examples/dactirc
         Dacti::CmdMenuEmptyCustom   ""
@@ -128,21 +122,18 @@ Configuration
 
 ###### INDEX FILE
 
-Without command modifiers, a record gets the status `reg` and the mode `gui`
-per default (the command has a gui and may run OR raise). With a status `ign`,
-a command is not allowed to raise an existing window; `block` stops raising and
-running as well.
+Without command modifiers, a record gets the status `reg` (may run OR raise).
+With a status `ign`, a command is not allowed to raise an existing window.
 
 A record looks like:
 
 ```
-# STATUS MODE[:MODIFIERS] WM_CLASS COMMAND
+# STATUS MODIFIERS WM_CLASS COMMAND
 
-reg gui chromium-browser.chromium-browser chromium
-ign gui XTerm xterm
-reg gui .*Iceweasel iceweasel
-reg tui:n - htop
-reg cli:nk - find
+reg d xcalc.XCalc xcalc
+reg t - alsamixer
+ign tk - task
+ign - - ls
 ```
 
 If a command has more than one record, the last entry is going to be used.
@@ -166,12 +157,10 @@ the following programs/packages:
 
 ##### CREDITS
 
-dacti is a rewrite of acti (v0.8; GNU GPLv3) by D630.
+dacti was a rewrite of acti (v0.8; GNU GPLv3) by D630.
 
 dacti is affected by Scott Garretts dmenu-launch (v0.5.7).
 
 ##### LICENCE
 
-[Copyrights](../master/doc/COPYRIGHT)
-
-[GNU GPLv3](../master/doc/LICENCE)
+GNU GPLv3

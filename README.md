@@ -6,10 +6,6 @@ bash shell script. By default, dacti works with
 [wmctrl](https://sites.google.com/site/tstyblo/wmctrl/), but you may
 [configure](../master/doc/examples/dactirc) and use your preferred tools.
 
-![](https://raw.githubusercontent.com/D630/dacti/master/doc/dacti.png)
-
-(Terminus 16)
-
 ##### BUGS & REQUESTS
 
 Please feel free to open an issue or put in a pull request on

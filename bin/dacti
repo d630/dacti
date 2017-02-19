@@ -86,7 +86,13 @@ function Dacti::ExecApp {
                     (\?)
                         exec "${command[@]}" &;;
                     (*)
-                        exec "${command[@]}";;
+                        if
+                            [[ -n ${App[display]} ]];
+                        then
+                            exec "${command[@]}" &
+                        else
+                            exec "${command[@]}";
+                        fi;;
                 esac;;
         esac;
         )
@@ -431,7 +437,7 @@ then
     Dacti::RaiseAppCustom;
 else
     [[ -n $DISPLAY ]] || {
-        Dacti::ExecAppCustom;
+        Dacti::ExecApp;
         return $?;
     };
     typeset \
@@ -444,20 +450,12 @@ else
         pid_list \
         xids;
     read -r _ _ _ _ xlist < <(command xprop -root _NET_CLIENT_LIST);
-
     if
-        [[ -n ${App[display]} ]];
+        [[ -n ${App[terminal]} ]];
     then
-        for xid in ${xlist//,/}; do
-            read -r _ _ class < <(command xprop -id "$xid" WM_CLASS);
-            class=${class//\"/};
-            [[ ${class/, /.} =~ ${App[class]} ]] &&
-                xids+=($xid);
-        done;
-    else
         for pid in $(command pgrep -d ' ' "$command"); do
             until
-                [[ ${pid// /} -eq 0 ]];
+                [[ ${pid// /} -eq 1 ]];
             do
                 pid=$(2>/dev/null command ps -p "${pid// /}" -o ppid=);
                 pid_list+=(${pid// /});
@@ -469,6 +467,16 @@ else
                 [[ $wm_pid == $pid ]] &&
                     xids+=($xid);
             done;
+        done;
+    else
+        for xid in ${xlist//,/}; do
+            # eval "$(xprop -id "$xid" -notype -f WM_CLASS 8u =\(\$0+\\\)\\n WM_CLASS)";
+            # [[ ${WM_CLASS%,}.${WM_CLASS[1]} =~ ${App[class]} ]] &&
+            #     xids+=($xid);
+            read -r _ _ class < <(command xprop -id "$xid" WM_CLASS);
+            class=${class//\"/};
+            [[ ${class/, /.} =~ ${App[class]} ]] &&
+                xids+=($xid);
         done;
     fi;
     case ${#xids[@]} in

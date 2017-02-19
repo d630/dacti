@@ -81,7 +81,13 @@ function Dacti::ExecAppCustom () (
                 (\?)
                     exec "${command[@]}" &;;
                 (*)
-                    exec "${command[@]}";;
+                    if
+                        [[ -n ${App[display]} ]];
+                    then
+                        exec "${command[@]}" &
+                    else
+                        exec "${command[@]}";
+                    fi;;
             esac;;
 
     esac;
@@ -96,18 +102,18 @@ case ${1,,} in
     (web)
         case $in_tty in
             (\?)
-                exec setsidw ${term} -e "${SHELL:-sh}" \
+                setsidw $term -e "${SHELL:-sh}" \
                     -c "furlview ${XDG_VAR_HOME}/log/urls.log;read" 2>/dev/null;;
             (*)
-                furlview "${XDG_VAR_HOME}/log/urls.log" 2>/dev/null;;
+                furlview "${XDG_VAR_HOME}/log/urls.log";;
         esac;;
     (c-web)
         case $in_tty in
             (\?)
-                exec setsidw ${term} -e "${SHELL:-sh}" \
+                setsidw $term -e "${SHELL:-sh}" \
                     -c "chromium-mselect-history;read" 2>/dev/null;;
             (*)
-                chromium-mselect-history 2>/dev/null;;
+                chromium-mselect-history;;
         esac;;
     (radio)
         wradio;;
@@ -118,7 +124,7 @@ case ${1,,} in
     (task-add)
         case $in_tty in
             (\?)
-                exec setsidw ${term} -e "${SHELL:-sh}" \
+                setsidw $term -e "${SHELL:-sh}" \
                     -c "taskwarrior-add;read" 2>/dev/null;;
             (*)
                 taskwarrior-add;;
@@ -126,7 +132,7 @@ case ${1,,} in
     (task-log)
         case $in_tty in
             (\?)
-                exec setsidw ${term} -e "${SHELL:-sh}" \
+                setsidw $term -e "${SHELL:-sh}" \
                     -c "taskwarrior-log;read" 2>/dev/null;;
             (*)
                 taskwarrior-log;;
@@ -134,7 +140,7 @@ case ${1,,} in
     (wecker)
         case $in_tty in
             (\?)
-                exec setsidw ${term} -e "${SHELL:-sh}" \
+                setsidw $term -e "${SHELL:-sh}" \
                     -c "rtcwakew;read" 2>/dev/null;;
             (*)
                 rtcwakew;;
@@ -142,6 +148,10 @@ case ${1,,} in
     (*)
         ! :;;
 esac;
+
+if
+    [[ $X_XCLIENT == bspwm ]];
+then
 
 function Dacti::RaiseAppCustom {
     [[ -n $DISPLAY ]] || {
@@ -160,26 +170,18 @@ function Dacti::RaiseAppCustom {
         pid_list \
         xids;
 
-    read -r _ _ _ _ xlist < <(command xprop -root _NET_CLIENT_LIST);
-
     if
-        [[ -n ${App[display]} ]];
+        [[ -n ${App[terminal]} ]];
     then
-        for xid in ${xlist//,/}; do
-            read -r _ _ class < <(command xprop -id "$xid" WM_CLASS);
-            class=${class//\"/};
-            [[ ${class/, /.} =~ ${App[class]} ]] &&
-                xids+=($xid);
-        done;
-    else
         for pid in $(command pgrep -d ' ' "$command"); do
             until
-                [[ ${pid// /} -eq 0 ]];
+                [[ ${pid// /} -eq 1 ]];
             do
                 pid=$(2>/dev/null command ps -p "${pid// /}" -o ppid=);
                 pid_list+=(${pid// /});
             done;
         done;
+        read -r _ _ _ _ xlist < <(command xprop -root _NET_CLIENT_LIST);
         for xid in ${xlist//,/}; do
             read -r _ _ wm_pid < <(command xprop -id "$xid" _NET_WM_PID);
             for pid in "${pid_list[@]}"; do
@@ -187,19 +189,36 @@ function Dacti::RaiseAppCustom {
                     xids+=($xid);
             done;
         done;
+    else
+        mapfile -t xids < <(
+            command bspc query -N |
+            command xargs -I id bspc query -T -n id |
+            command jq --arg class "${App[class]}" -r --slurp '
+                .[] |
+                [.id, .client.instanceName, .client.className] |
+                if (@text "\(.[1]).\(.[2])" | test($class))
+                then .[0]
+                else empty
+                end
+            ';
+        )
     fi;
 
     case ${#xids[@]} in
         (0)
-            Dacti::ExecApp;;
+            Dacti::ExecAppCustom;;
         (1)
-            command wmctrl -i -a "$xids";;
+            command bspc node "$xids" --activate;
+            command bspc node "$xids" --focus;;
         (*)
             for xid in "${xids[@]}"; do
-                command wmctrl -i -a "$id" ||
+                command bspc node "$xid" --activate;
+                command bspc node "$xid" --focus ||
                     return $?;
             done;
     esac;
 };
+
+fi;
 
 # vim: set ts=4 sw=4 tw=0 et :

@@ -11,7 +11,8 @@ menu=(
     BIN-ATIME-DESC
     BIN-DESC
     C-WEB
-    CLIPS
+    CLIPBUFFER2CLIPBOARD
+    CLIPBUFFER2PRIMARY
     INSERT
     PW
     PW-CLIP
@@ -97,8 +98,10 @@ function Dacti::ParseSelectionCustom
 case ${1,,} in
     (z)
         z-run;;
-    (clips)
+    (clipbuffer2primary)
         clipbuffer;;
+    (clipbuffer2clipboard)
+        clipbuffer -b;;
     (web)
         case $in_tty in
             (\?)
@@ -150,7 +153,7 @@ case ${1,,} in
 esac;
 
 if
-    [[ $X_XCLIENT == bspwm ]];
+    [[ $X_XCLIENT == bspwm && $(command uname) == Linux ]];
 then
 
 function Dacti::RaiseAppCustom {
@@ -161,47 +164,66 @@ function Dacti::RaiseAppCustom {
 
     typeset \
         class \
+        i \
         pid \
         wm_pid \
         xid \
         xlist;
 
+    typeset -A pid_list;
+
     typeset -a \
-        pid_list \
+        stat \
         xids;
 
     if
         [[ -n ${App[terminal]} ]];
     then
-        for pid in $(command pgrep -d ' ' "$command"); do
+        for pid in $(command pgrep -d ' ' -x "$command"); do
             until
-                [[ ${pid// /} -eq 1 ]];
+                ((pid == 1));
             do
-                pid=$(2>/dev/null command ps -p "${pid// /}" -o ppid=);
-                pid_list+=(${pid// /});
+                stat=($(</proc/$pid/stat));
+                pid=${stat[3]};
+                pid_list[$pid]=1;
             done;
         done;
-        read -r _ _ _ _ xlist < <(command xprop -root _NET_CLIENT_LIST);
+        unset -v pid_list[1];
+        read -r _ xlist < <(
+            command xprop -root -notype \
+                -f _NET_CLIENT_LIST 32x ' $0+\n' _NET_CLIENT_LIST;
+        );
         for xid in ${xlist//,/}; do
-            read -r _ _ wm_pid < <(command xprop -id "$xid" _NET_WM_PID);
-            for pid in "${pid_list[@]}"; do
-                [[ $wm_pid == $pid ]] &&
+            wm_pid=$(xdo pid "$xid");
+            for ((i=${#pid_list[@]}; i > 0; i--)); do
+                if
+                    ((pid_list[$wm_pid]));
+                then
                     xids+=($xid);
+                    pid_list[$wm_pid]=0;
+                    break;
+                fi;
             done;
         done;
     else
         mapfile -t xids < <(
-            command bspc query -N |
-            command xargs -I id bspc query -T -n id |
-            command jq --arg class "${App[class]}" -r --slurp '
-                .[] |
-                [.id, .client.instanceName, .client.className] |
-                if (@text "\(.[1]).\(.[2])" | test($class))
-                then .[0]
-                else empty
-                end
+            command bspc query -T -m |
+            command jq --arg class "${App[class]}" -r '
+                def rek(f):
+                    if (f | length) < 1
+                    then empty
+                    elif (f.client | length) < 1
+                    then rek(f.firstChild), rek(f.secondChild)
+                    else
+                        if "\(f.client.instanceName).\(f.client.className)" | test($class)
+                        then f.id
+                        else empty
+                        end
+                    end;
+                .desktops[] |
+                rek(.root)
             ';
-        )
+        );
     fi;
 
     case ${#xids[@]} in

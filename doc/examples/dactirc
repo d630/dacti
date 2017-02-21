@@ -200,7 +200,7 @@ function Dacti::RaiseAppCustom {
                     ((pid_list[$wm_pid]));
                 then
                     xids+=($xid);
-                    pid_list[$wm_pid]=0;
+                    unset -v "pid_list[$wm_pid]";
                     break;
                 fi;
             done;

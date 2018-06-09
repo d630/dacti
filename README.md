@@ -71,6 +71,7 @@ Main selecton menu: modifiers
 ###### ENVIRONMENT VARIABLES
 
 ```
+Environment variables
     DACTI_CONF_FILE                 See function Dacti::Main
     DACTI_INDEX_FILE                ""
     DACTI_PRETEND                   Default: 0
@@ -79,11 +80,6 @@ Main selecton menu: modifiers
 ###### CONFIGURATION
 
 ```
-Environment variables
-    DACTI_CONF_FILE                 See function Dacti::Main
-    DACTI_INDEX_FILE                ""
-    DACTI_PRETEND                   Default: 0
-
 Configuration
     normal scalar variables
         in_tty                      Output of: ps -p "$PPID" -o tty=
@@ -134,7 +130,8 @@ ign - - ls
 
 If a command has more than one record, the last entry is going to be used.
 
-The WM_CLASS string is considered as extended regular expression pattern (regex(3)).
+The WM_CLASS string is considered as extended regular expression pattern
+(regex(3)).
 
 ##### NOTICE
 
@@ -155,7 +152,7 @@ the following programs/packages:
 
 dacti was a rewrite of acti (v0.8; GNU GPLv3) by D630.
 
-dacti is affected by Scott Garretts dmenu-launch (v0.5.7).
+dacti was affected by Scott Garretts dmenu-launch (v0.5.7).
 
 ##### LICENCE
 

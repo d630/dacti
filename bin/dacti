@@ -1,29 +1,7 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014 -- 2017 D630
+# Copyright 2014 -- 2019 D630
 # https://github.com/D630/dacti
-
-# -- DEBUGGING.
-
-#printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
-#set -o errexit
-#set -o errtrace
-#set -o noexec
-#set -o nounset
-#set -o pipefail
-#set -o verbose
-#set -o xtrace
-#trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
-#exec 2>> ~/dacti.log
-#typeset vars_base=$(set -o posix ; set)
-#fgrep -v -e "$vars_base" < <(set -o posix ; set) | \
-#egrep -v -e "^BASH_REMATCH=" \
-#         -e "^OPTIND=" \
-#         -e "^REPLY=" \
-#         -e "^BASH_LINENO=" \
-#         -e "^BASH_SOURCE=" \
-#         -e "^FUNCNAME=" | \
-#less
 
 [[ ${BASH_SOURCE[0]} == $0 ]] || {
     printf 'Error: Do not execute dacti via source\n' 1>&2;
@@ -57,8 +35,6 @@ function Dacti::ExecApp {
         Dacti::ExecAppCustom;
     else
         (
-        command -v "$command" 1>/dev/null 2>&1 ||
-            return 1;
         IFS=' ';
         case ${App[keep]}${App[nterminal]}${App[terminal]} in
             (nt)
@@ -282,10 +258,23 @@ function Dacti::ParseSelection {
         fi;
     fi;
 
+    command -v "$command" 1>/dev/null 2>&1 || {
+        printf 'Error: App is not an executable\n' 1>&2;
+        return 1
+    }
+
     [[ -z $DISPLAY && -n ${App[display]} ]] && {
         printf 'Error: App depends on DISPLAY\n' 1>&2;
         return 1;
     };
+
+    case ${App[status]} in
+        (ign|reg)
+            :;;
+        (*)
+            printf 'Error: Unknown app status: %s\n' "${App[status]}" 1>&2;
+            return 1;
+    esac
 
     App[flags]=${App[display]}${App[keep]}${App[nterminal]}${App[terminal]};
     App[flags]=${App[flags]:--};
@@ -309,20 +298,22 @@ function Dacti::ParseSelection {
         pref_idx \
         pref_pretend;
 
-    case ${App[status]} in
-        (ign)
-            Dacti::ExecApp;;
-        (reg)
-            Dacti::RaiseApp;;
-        (*)
-            exit 1;;
-    esac;
+    if
+        [[ -z $DISPLAY || ${App[status]} == ign ]];
+    then
+        Dacti::ExecApp;
+    else
+        Dacti::RaiseApp;
+    fi;
 
     s=$?;
 
     [[ $pref_idx$pref_pretend$s -eq 100 ]] &&
-        printf %s\\n \
-            "${App[status]} ${App[flags]} ${App[class]} $command" \
+        printf '%s %s %s %s\n' \
+            "${App[status]}" \
+            "${App[flags]}" \
+            "${App[class]}" \
+            "$command" \
             >> "$DACTI_INDEX_FILE";
 
     return $s;
@@ -436,10 +427,6 @@ if
 then
     Dacti::RaiseAppCustom;
 else
-    [[ -n $DISPLAY ]] || {
-        Dacti::ExecApp;
-        return $?;
-    };
     typeset \
         class \
         i \
@@ -506,5 +493,3 @@ fi;
 Dacti::Main "$@";
 
 # vim: set ts=4 sw=4 tw=0 et :
-
-

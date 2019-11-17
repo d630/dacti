@@ -93,6 +93,7 @@ function Dacti::Main {
 	declare -xi "DACTI_PRETEND=$DACTI_PRETEND";
 
 	declare +x \
+		in_tty \
 		prompt \
 		selection \
 		term;
@@ -111,7 +112,7 @@ function Dacti::Main {
 	);
 
 	in_tty=$(command -p ps -p "$PPID" -o tty=);
-	declare -r +x in_tty;
+	declare -r in_tty;
 
 	if
 		[[ -r $DACTI_CONF_FILE ]];

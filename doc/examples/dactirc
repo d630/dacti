@@ -6,241 +6,180 @@ DACTI_INDEX_FILE=${XDG_VAR_HOME:?}/lib/dacti/dacti.index;
 DACTI_PRETEND=0;
 
 menu=(
-    BIN-ASC
-    BIN-ATIME-ASC
-    BIN-ATIME-DESC
-    BIN-DESC
-    C-WEB
-    CLIPBUFFER2CLIPBOARD
-    CLIPBUFFER2PRIMARY
-    INSERT
-    PW
-    PW-CLIP
-    RADIO
-    TASK-ADD
-    TASK-LOG
-    WEB
-    WECKER
-    Z
+	BIN-ASC
+	BIN-ATIME-ASC
+	BIN-ATIME-DESC
+	BIN-DESC
+	C-WEB
+	CLIPBUFFER2CLIPBOARD
+	CLIPBUFFER2PRIMARY
+	INSERT
+	PW
+	PW-CLIP
+	RADIO
+	WEB
+	WECKER
+	Z
 );
 
 function Dacti::CmdMenuCustom
 case $in_tty in
-    (\?)
-        /usr/local/bin/dmenu2 -b -f -i \
-            -l "10" \
-            -p "$1" \
-            -fn "-xos4-terminus-medium-r-normal-*-16-*-*-*-*-*-iso10646-*" \
-            -name "dacti" \
-            -class "dacti";;
-    (*)
-        /usr/local/bin/slmenu -b -i -p "$1";;
+	(\?)
+		/usr/local/bin/dmenu2 -b -f -i \
+			-l 10 \
+			-p "$1" \
+			-fn monospace-9:normal \
+			-name dacti \
+			-class dacti;;
+	(*)
+		/usr/local/bin/slmenu -b -i -p "$1";;
 esac;
 
 function Dacti::CmdMenuEmptyCustom
 case $in_tty in
-    (\?)
-        0<&- /usr/local/bin/dmenu2 -b -f -i \
-            -l "10" \
-            -p "$1" \
-            -fn "-xos4-terminus-medium-r-normal-*-16-*-*-*-*-*-iso10646-*" \
-            -name "dacti" \
-            -class "dacti";;
-    (*)
-        <<< "" /usr/local/bin/slmenu -b -i -p "$1";;
+	(\?)
+		0<&- /usr/local/bin/dmenu2 -b -f -i \
+			-l 10 \
+			-p "$1" \
+			-fn monospace-9:normal \
+			-name dacti \
+			-class dacti;;
+	(*)
+		<<< "" /usr/local/bin/slmenu -b -i -p "$1";;
 esac;
-
-function Dacti::ExecAppCustom () (
-    command -v "$command" 1>/dev/null 2>&1 ||
-        return 1;
-
-    IFS=' ';
-
-    case ${App[keep]}${App[nterminal]}${App[terminal]} in
-        (nt)
-            exec $term -e "${SHELL:-sh}" -c "${command[*]}" &;;
-        (k)
-            exec ${SHELL:-sh} -c "${command[*]};printf 'Press ENTER to continue\n';read";;
-        (knt)
-            exec $term -e "${SHELL:-sh}" -c "${command[*]};${SHELL:-sh}" &;;
-        (t)
-            case $in_tty in
-                (\?)
-                    exec $term -e "${SHELL:-sh}" -c "${command[*]}" &;;
-                (*)
-                    exec "${command[@]}";;
-            esac;;
-        (kt)
-            case $in_tty in
-                (\?)
-                    exec $term -e "${SHELL:-sh}" -c "${command[*]};${SHELL:-sh}" &;;
-                (*)
-                    exec ${SHELL:-sh} -c "${command[*]};printf 'Press ENTER to continue\n';read";;
-            esac;;
-        ('')
-            case $in_tty in
-                (\?)
-                    exec "${command[@]}" &;;
-                (*)
-                    if
-                        [[ -n ${App[display]} ]];
-                    then
-                        exec "${command[@]}" &
-                    else
-                        exec "${command[@]}";
-                    fi;;
-            esac;;
-
-    esac;
-);
 
 function Dacti::ParseSelectionCustom
 case ${1,,} in
-    (z)
-        z-run;;
-    (clipbuffer2primary)
-        clipbuffer;;
-    (clipbuffer2clipboard)
-        clipbuffer -b;;
-    (web)
-        case $in_tty in
-            (\?)
-                setsidw $term -e "${SHELL:-sh}" \
-                    -c "furlview ${XDG_VAR_HOME}/log/urls.log;read" 2>/dev/null;;
-            (*)
-                furlview "${XDG_VAR_HOME}/log/urls.log";;
-        esac;;
-    (c-web)
-        case $in_tty in
-            (\?)
-                setsidw $term -e "${SHELL:-sh}" \
-                    -c "chromium-mselect-history;read" 2>/dev/null;;
-            (*)
-                chromium-mselect-history;;
-        esac;;
-    (radio)
-        wradio;;
-    (pw)
-        pass-copy --type;;
-    (pw-clip)
-        pass-copy;;
-    (task-add)
-        case $in_tty in
-            (\?)
-                setsidw $term -e "${SHELL:-sh}" \
-                    -c "taskwarrior-add;read" 2>/dev/null;;
-            (*)
-                taskwarrior-add;;
-        esac;;
-    (task-log)
-        case $in_tty in
-            (\?)
-                setsidw $term -e "${SHELL:-sh}" \
-                    -c "taskwarrior-log;read" 2>/dev/null;;
-            (*)
-                taskwarrior-log;;
-        esac;;
-    (wecker)
-        case $in_tty in
-            (\?)
-                setsidw $term -e "${SHELL:-sh}" \
-                    -c "rtcwakew;read" 2>/dev/null;;
-            (*)
-                rtcwakew;;
-        esac;;
-    (*)
-        ! :;;
+	(z)
+		z-run;;
+	(clipbuffer2primary)
+		clipbuffer;;
+	(clipbuffer2clipboard)
+		clipbuffer -b;;
+	(web)
+		case $in_tty in
+			(\?)
+				setsidw "$term" -e "${SHELL:-sh}" \
+					-c "furlview '$XDG_VAR_HOME/log/urls.log';read" 2>/dev/null;;
+			(*)
+				furlview "$XDG_VAR_HOME/log/urls.log";;
+		esac;;
+	(c-web)
+		case $in_tty in
+			(\?)
+				setsidw "$term" -e "${SHELL:-sh}" \
+					-c 'chromiumw-mselect-history;read' 2>/dev/null;;
+			(*)
+				chromiumw-mselect-history;;
+		esac;;
+	(radio)
+		wradio;;
+	(pw)
+		pass-copy --type;;
+	(pw-clip)
+		pass-copy;;
+	(wecker)
+		case $in_tty in
+			(\?)
+				setsidw "$term" -e "${SHELL:-sh}" \
+					-c 'rtcwakew;read' 2>/dev/null;;
+			(*)
+				rtcwakew;;
+		esac;;
+	(*)
+		! :;;
 esac;
 
 if
-    [[ $X_XCLIENT == bspwm && $(command uname) == Linux ]];
+	[[ $X_XCLIENT == bspwm && $(command uname) == Linux ]];
 then
 
 function Dacti::RaiseAppCustom {
-    [[ -n $DISPLAY ]] || {
-        Dacti::ExecAppCustom;
-        return $?;
-    };
+	typeset \
+		class \
+		i \
+		pid \
+		wm_pid \
+		xid;
 
-    typeset \
-        class \
-        i \
-        pid \
-        wm_pid \
-        xid \
-        xlist;
+	typeset -A pid_list;
 
-    typeset -A pid_list;
+	typeset -a \
+		stat \
+		xids \
+		xlist;
 
-    typeset -a \
-        stat \
-        xids;
+	if
+		[[ -n ${App[terminal]} ]];
+	then
+		while
+			read -r pid;
+		do
+			until
+				((pid == 1));
+			do
+				stat=($(</proc/$pid/stat));
+				pid=${stat[3]};
+				pid_list[$pid]=1;
+			done;
+		done < <(command pgrep -x "$command");
+		unset -v pid_list[1];
+		IFS=', ' read -r -a xlist < <(
+			command xprop -root -notype \
+				-f _NET_CLIENT_LIST 32x ' $0+\n' _NET_CLIENT_LIST;
+		);
+		unset -v xlist[0];
+		for xid in "${xlist[@]}";
+		do
+			wm_pid=$(xdo pid "$xid");
+			for ((i=${#pid_list[@]}; i > 0; i--));
+			do
+				if
+					((pid_list[$wm_pid]));
+				then
+					xids+=($xid);
+					unset -v "pid_list[$wm_pid]";
+					break;
+				fi;
+			done;
+		done;
+	else
+		[[ ${App[class]} == - ]] ||
+			mapfile -t xids < <(
+				command bspc query -T -m |
+				command jq --arg class "${App[class]}" -r '
+					def rek(f):
+						if (f | length) < 1
+						then empty
+						elif (f.client | length) < 1
+						then rek(f.firstChild), rek(f.secondChild)
+						else
+							if "\(f.client.instanceName).\(f.client.className)" | test($class)
+							then f.id
+							else empty
+							end
+						end;
+					.desktops[] |
+					rek(.root)
+				';
+			);
+	fi;
 
-    if
-        [[ -n ${App[terminal]} ]];
-    then
-        for pid in $(command pgrep -d ' ' -x "$command"); do
-            until
-                ((pid == 1));
-            do
-                stat=($(</proc/$pid/stat));
-                pid=${stat[3]};
-                pid_list[$pid]=1;
-            done;
-        done;
-        unset -v pid_list[1];
-        read -r _ xlist < <(
-            command xprop -root -notype \
-                -f _NET_CLIENT_LIST 32x ' $0+\n' _NET_CLIENT_LIST;
-        );
-        for xid in ${xlist//,/}; do
-            wm_pid=$(xdo pid "$xid");
-            for ((i=${#pid_list[@]}; i > 0; i--)); do
-                if
-                    ((pid_list[$wm_pid]));
-                then
-                    xids+=($xid);
-                    unset -v "pid_list[$wm_pid]";
-                    break;
-                fi;
-            done;
-        done;
-    else
-        mapfile -t xids < <(
-            command bspc query -T -m |
-            command jq --arg class "${App[class]}" -r '
-                def rek(f):
-                    if (f | length) < 1
-                    then empty
-                    elif (f.client | length) < 1
-                    then rek(f.firstChild), rek(f.secondChild)
-                    else
-                        if "\(f.client.instanceName).\(f.client.className)" | test($class)
-                        then f.id
-                        else empty
-                        end
-                    end;
-                .desktops[] |
-                rek(.root)
-            ';
-        );
-    fi;
-
-    case ${#xids[@]} in
-        (0)
-            Dacti::ExecAppCustom;;
-        (1)
-            command bspc node "$xids" --activate;
-            command bspc node "$xids" --focus;;
-        (*)
-            for xid in "${xids[@]}"; do
-                command bspc node "$xid" --activate;
-                command bspc node "$xid" --focus ||
-                    return $?;
-            done;
-    esac;
+	case ${#xids[@]} in
+		(0)
+			\Dacti::ExecApp;;
+		(1)
+			command bspc node "$xids" --activate;
+			command bspc node "$xids" --focus;;
+		(*)
+			for xid in "${xids[@]}"; do
+				command bspc node "$xid" --activate;
+				command bspc node "$xid" --focus ||
+					return $?;
+			done;
+	esac;
 };
 
 fi;
 
-# vim: set ts=4 sw=4 tw=0 et :
+# vim: set ft=sh :

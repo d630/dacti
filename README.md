@@ -136,17 +136,17 @@ The WM_CLASS string is considered as extended regular expression pattern
 ##### NOTICE
 
 dacti has been written in [GNU bash](http://www.gnu.org/software/bash/) on
-[Debian GNU/Linux stretch/sid (4.9.6-3 x86-64)](https://www.debian.org) using
+[Debian GNU/Linux bullseye/sid (5.2.0-3 x86-64)](https://www.debian.org) using
 the following programs/packages:
 
-- GNU bash 4.4.11(1)-release
-- GNU coreutils 8.26: cut, mkdir, printf, sort, uniq
-- GNU findutils 4.7.0-git: find
-- GNU grep 2.27
-- procps 3.3.12: pgrep, ps
-- suckless-tools 42-2: dmenu, stest
+- GNU bash 5.0.11(1)-release
+- GNU coreutils 8.30: cut, mkdir, sort, uniq
+- GNU findutils 4.7.0: find
+- GNU grep 3.3
+- procps 3.3.15: pgrep, ps
+- suckless-tools 44-1: dmenu, stest
 - wmctrl 1.07-7
-- x11-utils 7.7+3: xprop 1.2.2
+- x11-utils 7.7+4: xprop 1.2.3
 
 ##### CREDITS
 

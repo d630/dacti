@@ -144,7 +144,7 @@ function Dacti::Main {
 			);
 			apps+=("$3");
 		};
-		declare -f +x +r \
+		declare -f -r +x\
 			ign \
 			reg;
 		set -f;
